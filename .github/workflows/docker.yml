@@ -26,6 +26,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./discord-whitelist-bot
+          file: ./discord-whitelist-bot/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/bedrock-discord-whitelist:latest
