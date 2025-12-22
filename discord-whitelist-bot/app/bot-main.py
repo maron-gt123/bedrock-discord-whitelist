@@ -15,7 +15,6 @@ with open("config.yaml", "r") as f:
 
 BOT_TOKEN = config['bot']['token']
 server = config['server']
-
 APPLY_CHANNEL = server['apply_channel']
 APPROVE_CHANNEL = server['approve_channel']
 ADMIN_ROLE = server['admin_role']
@@ -32,7 +31,7 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 # =====================
 # 内部状態
 # =====================
-apply_rate_limit = {}   # discord_id -> last_apply_time
+apply_rate_limit = {}  # discord_id -> last_apply_time
 
 # =====================
 # ユーティリティ
@@ -47,11 +46,10 @@ def save_json(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w") as f:
         json.dump(data, f, indent=2)
-    os.replace(tmp, path)  # 原子的に置き換え
+    os.replace(tmp, path)
 
 def is_valid_gamertag(name):
-    # Xbox Gamertag想定
-    # 3〜16文字 / 英数字 + スペース
+    # Xbox Gamertag 想定
     if not (3 <= len(name) <= 16):
         return False
     if not re.match(r'^[A-Za-z0-9 ]+$', name):
@@ -72,31 +70,25 @@ allowlist = load_json(ALLOWLIST_FILE, [])
 # =====================
 @bot.command()
 async def apply(ctx, *, gamertag):
-    # チャンネル制限
     if ctx.channel.id != APPLY_CHANNEL:
         return
 
     now = time.time()
-
-    # レート制限（60秒）
     last = apply_rate_limit.get(ctx.author.id, 0)
     if now - last < 60:
         await ctx.send("⏳ 申請は60秒に1回までです")
         return
     apply_rate_limit[ctx.author.id] = now
 
-    # Gamertag検証
     if not is_valid_gamertag(gamertag):
         await ctx.send("❌ Gamertag形式が不正です（3〜16文字、英数字とスペースのみ）")
         return
 
-    # 既存申請チェック（1人1件）
     for entry in whitelist.values():
         if entry["discordId"] == str(ctx.author.id) and entry["status"] == "pending":
             await ctx.send("❌ すでに申請中です")
             return
 
-    # 同名申請チェック
     if gamertag in whitelist:
         await ctx.send("❌ このGamertagはすでに申請されています")
         return
@@ -107,7 +99,7 @@ async def apply(ctx, *, gamertag):
     }
     save_json(WHITELIST_FILE, whitelist)
 
-    await ctx.send(f"📩 申請受付: **{gamertag}**\n承認をお待ちください")
+    await ctx.send(f"✅ 申請受付: **{gamertag}**\n承認をお待ちください")
 
 # =====================
 # 承認コマンド
@@ -123,7 +115,7 @@ async def approve(ctx, *, gamertag):
         await ctx.send("❌ 申請が見つかりません")
         return
 
-    # XUID取得
+    # XUID を取得
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://playerdb.co/api/player/xbox/{gamertag}") as resp:
             try:
@@ -133,7 +125,6 @@ async def approve(ctx, *, gamertag):
                 await ctx.send(f"❌ XUID取得失敗: {gamertag}")
                 return
 
-    # allowlist 重複防止
     if any(e["xuid"] == xuid for e in allowlist):
         await ctx.send("⚠️ すでに登録済みのXUIDです")
         return
@@ -168,6 +159,40 @@ async def revoke(ctx, *, gamertag):
     save_json(ALLOWLIST_FILE, allowlist)
 
     await ctx.send(f"🗑️ 削除完了: **{gamertag}**")
+
+# =====================
+# 一覧表示コマンド
+# =====================
+@bot.command()
+async def list(ctx, status: str):
+    if status not in ["pending", "approved"]:
+        await ctx.send("❌ 使い方: `/list pending` または `/list approved`")
+        return
+
+    if status == "pending" and ctx.channel.id != APPLY_CHANNEL:
+        return
+
+    if status == "approved":
+        if ctx.channel.id != APPROVE_CHANNEL:
+            return
+        if not is_admin(ctx.author):
+            await ctx.send("❌ 権限がありません")
+            return
+
+    items = []
+    for gamertag, data in whitelist.items():
+        if data.get("status") == status:
+            items.append(gamertag)
+
+    if not items:
+        await ctx.send(f"📭 {status} の申請はありません")
+        return
+
+    message = f"📋 **{status.upper()} 一覧**\n"
+    for name in items:
+        message += f"- {name}\n"
+
+    await ctx.send(message)
 
 # =====================
 # 起動
