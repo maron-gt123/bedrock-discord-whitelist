@@ -28,4 +28,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: marongt123/bedrock-discord-whitelist:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bedrock-discord-whitelist:latest
