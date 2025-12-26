@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discord-whitelist-bot
+  labels:
+    app: discord-whitelist-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discord-whitelist-bot
+  template:
+    metadata:
+      labels:
+        app: discord-whitelist-bot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: bot
+          image: marongt123/bedrock-discord-whitelist:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+      volumes:
