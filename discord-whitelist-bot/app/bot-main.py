@@ -26,7 +26,7 @@ ALLOWLIST_FILE = server['allowlist_file']
 # =====================
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='/', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents,help_command=None)
 
 # =====================
 # 内部状態
@@ -198,3 +198,37 @@ async def list(ctx, status: str):
 # 起動
 # =====================
 bot.run(BOT_TOKEN)
+
+# =====================
+# help コマンド
+# =====================
+@bot.command()
+async def help(ctx):
+    lines = []
+
+    lines.append("📖 **コマンド一覧**")
+    lines.append("")
+
+    # ===== 一般ユーザー =====
+    lines.append("👤 **一般ユーザー**")
+    lines.append("`/apply <Gamertag>`")
+    lines.append("└ ホワイトリスト申請を行います")
+    lines.append("")
+    lines.append("`/list pending`")
+    lines.append("└ 申請中の一覧を表示します")
+    lines.append("")
+
+    # ===== 管理者 =====
+    if is_admin(ctx.author):
+        lines.append("🛠️ **管理者**")
+        lines.append("`/approve <Gamertag>`")
+        lines.append("└ 申請を承認し allowlist に追加します")
+        lines.append("")
+        lines.append("`/revoke <Gamertag>`")
+        lines.append("└ ホワイトリスト・allowlist から削除します")
+        lines.append("")
+        lines.append("`/list approved`")
+        lines.append("└ 承認済み一覧を表示します")
+        lines.append("")
+
+    await ctx.send("\n".join(lines))
