@@ -1,13 +1,13 @@
 bot:
-  token: "DISCORD_BOT_TOKEN"
+  token: "${DISCORD_BOT_TOKEN}"
 
 server:
-  name: bedrock_s1
-  description: "自宅用統合版サーバー1"
-  discord_guild: 123456789012345678
-  apply_channel: 111111111111111111
-  approve_channel: 222222222222222222
-  admin_role: MC-Admin
+  name: example_servername
+  description: "discordlog_name"
+  discord_guild: "${DISCORD_SERVER_ID}"
+  apply_channel: "${DISCORD_APPLY_CHANNELID}"
+  approve_channel: "${DISCORD_APPROVE_CHANNELID}"
+  admin_role: "${DISCORD_ADMINROLEID}"
 
   whitelist_file: "whitelist.json"
   allowlist_file: "allowlist.json"
