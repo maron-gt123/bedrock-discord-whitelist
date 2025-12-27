@@ -25,7 +25,7 @@ spec:
             - sh
             - -c
             - |
-              envsubst < /tmpl/config.yaml.tmpl > /config/config.yaml
+              envsubst < /tmpl/config.yaml > /config/config.yaml
           envFrom:
             - secretRef:
                 name: secret-discordbot
