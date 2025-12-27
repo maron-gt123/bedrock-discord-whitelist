@@ -18,16 +18,13 @@ def load_config(path="config.yaml"):
         if not env_key.startswith("CFG_"):
             continue
 
-        # CFG_BOT_TOKEN -> ["bot", "token"]
         keys = env_key[4:].lower().split("_")
-
         ref = config
         for k in keys[:-1]:
             if k not in ref or not isinstance(ref[k], dict):
                 ref[k] = {}
             ref = ref[k]
 
-        # 型変換
         if env_val.lower() in ("true", "false"):
             env_val = env_val.lower() == "true"
         elif env_val.isdigit():
@@ -40,20 +37,23 @@ def load_config(path="config.yaml"):
 
 config = load_config()
 
-BOT_TOKEN = config['bot']['token']
-server = config['server']
-APPLY_CHANNEL = server['apply_channel']
-APPROVE_CHANNEL = server['approve_channel']
-ADMIN_ROLE = server['admin_role']
-WHITELIST_FILE = server['whitelist_file']
-ALLOWLIST_FILE = server['allowlist_file']
+BOT_TOKEN = config["bot"]["token"]
+
+server = config["server"]
+APPLY_CHANNEL = server["apply_channel"]
+APPROVE_CHANNEL = server["approve_channel"]
+ADMIN_ROLE = server["admin_role"]
+
+mc = config["minecraft"]
+WHITELIST_FILE = mc["whitelist_file"]
+ALLOWLIST_FILE = mc["allowlist_file"]
 
 # =====================
 # Discord Bot 初期化
 # =====================
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='/', intents=intents,help_command=None)
+bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 
 # =====================
 # 内部状態
@@ -69,28 +69,59 @@ def load_json(path, default):
             return json.load(f)
     return default
 
+
 def save_json(path, data):
     tmp = path + ".tmp"
     with open(tmp, "w") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, path)
 
+
 def is_valid_gamertag(name):
-    # Xbox Gamertag 想定
     if not (3 <= len(name) <= 16):
         return False
-    if not re.match(r'^[A-Za-z0-9 ]+$', name):
-        return False
-    return True
+    return bool(re.match(r"^[A-Za-z0-9 ]+$", name))
+
 
 def is_admin(member):
     return any(role.name == ADMIN_ROLE for role in member.roles)
+
 
 # =====================
 # データ読み込み
 # =====================
 whitelist = load_json(WHITELIST_FILE, {})
 allowlist = load_json(ALLOWLIST_FILE, [])
+
+# =====================
+# help コマンド
+# =====================
+@bot.command()
+async def help(ctx):
+    lines = []
+    lines.append("📖 **コマンド一覧**")
+    lines.append("")
+
+    lines.append("👤 **一般ユーザー**")
+    lines.append("`/apply <Gamertag>`")
+    lines.append("ホワイトリスト申請を行います")
+    lines.append("")
+    lines.append("`/wl_list pending`")
+    lines.append("申請中の一覧を表示します")
+    lines.append("")
+
+    if is_admin(ctx.author):
+        lines.append("🛠️ **管理者**")
+        lines.append("`/approve <Gamertag>`")
+        lines.append("申請を承認し allowlist に追加します")
+        lines.append("")
+        lines.append("`/revoke <Gamertag>`")
+        lines.append("ホワイトリスト・allowlist から削除します")
+        lines.append("")
+        lines.append("`/wl_list approved`")
+        lines.append("承認済み一覧を表示します")
+
+    await ctx.send("\n".join(lines))
 
 # =====================
 # 申請コマンド
@@ -108,7 +139,7 @@ async def apply(ctx, *, gamertag):
     apply_rate_limit[ctx.author.id] = now
 
     if not is_valid_gamertag(gamertag):
-        await ctx.send("❌ Gamertag形式が不正です（3〜16文字、英数字とスペースのみ）")
+        await ctx.send("❌ Gamertag形式が不正です")
         return
 
     for entry in whitelist.values():
@@ -122,11 +153,11 @@ async def apply(ctx, *, gamertag):
 
     whitelist[gamertag] = {
         "discordId": str(ctx.author.id),
-        "status": "pending"
+        "status": "pending",
     }
     save_json(WHITELIST_FILE, whitelist)
 
-    await ctx.send(f"✅ 申請受付: **{gamertag}**\n承認をお待ちください")
+    await ctx.send(f"✅ 申請受付: **{gamertag}**")
 
 # =====================
 # 承認コマンド
@@ -142,9 +173,10 @@ async def approve(ctx, *, gamertag):
         await ctx.send("❌ 申請が見つかりません")
         return
 
-    # XUID を取得
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://playerdb.co/api/player/xbox/{gamertag}") as resp:
+        async with session.get(
+            f"https://playerdb.co/api/player/xbox/{gamertag}"
+        ) as resp:
             try:
                 data = await resp.json()
                 xuid = data["data"]["player"]["id"]
@@ -156,10 +188,7 @@ async def approve(ctx, *, gamertag):
         await ctx.send("⚠️ すでに登録済みのXUIDです")
         return
 
-    allowlist.append({
-        "name": gamertag,
-        "xuid": xuid
-    })
+    allowlist.append({"name": gamertag, "xuid": xuid})
     save_json(ALLOWLIST_FILE, allowlist)
 
     whitelist[gamertag]["status"] = "approved"
@@ -190,10 +219,10 @@ async def revoke(ctx, *, gamertag):
 # =====================
 # 一覧表示コマンド
 # =====================
-@bot.command()
-async def list(ctx, status: str):
-    if status not in ["pending", "approved"]:
-        await ctx.send("❌ 使い方: `/list pending` または `/list approved`")
+@bot.command(name="wl_list")
+async def wl_list(ctx, status: str):
+    if status not in ("pending", "approved"):
+        await ctx.send("❌ `/wl_list pending` または `/wl_list approved`")
         return
 
     if status == "pending" and ctx.channel.id != APPLY_CHANNEL:
@@ -206,56 +235,19 @@ async def list(ctx, status: str):
             await ctx.send("❌ 権限がありません")
             return
 
-    items = []
-    for gamertag, data in whitelist.items():
-        if data.get("status") == status:
-            items.append(gamertag)
+    items = [
+        name for name, data in whitelist.items()
+        if data.get("status") == status
+    ]
 
     if not items:
         await ctx.send(f"📭 {status} の申請はありません")
         return
 
-    message = f"📋 **{status.upper()} 一覧**\n"
-    for name in items:
-        message += f"- {name}\n"
-
-    await ctx.send(message)
+    msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
+    await ctx.send(msg)
 
 # =====================
 # 起動
 # =====================
 bot.run(BOT_TOKEN)
-
-# =====================
-# help コマンド
-# =====================
-@bot.command()
-async def help(ctx):
-    lines = []
-
-    lines.append("📖 **コマンド一覧**")
-    lines.append("")
-
-    # ===== 一般ユーザー =====
-    lines.append("👤 **一般ユーザー**")
-    lines.append("`/apply <Gamertag>`")
-    lines.append("└ ホワイトリスト申請を行います")
-    lines.append("")
-    lines.append("`/list pending`")
-    lines.append("└ 申請中の一覧を表示します")
-    lines.append("")
-
-    # ===== 管理者 =====
-    if is_admin(ctx.author):
-        lines.append("🛠️ **管理者**")
-        lines.append("`/approve <Gamertag>`")
-        lines.append("└ 申請を承認し allowlist に追加します")
-        lines.append("")
-        lines.append("`/revoke <Gamertag>`")
-        lines.append("└ ホワイトリスト・allowlist から削除します")
-        lines.append("")
-        lines.append("`/list approved`")
-        lines.append("└ 承認済み一覧を表示します")
-        lines.append("")
-
-    await ctx.send("\n".join(lines))
