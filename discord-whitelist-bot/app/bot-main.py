@@ -10,8 +10,35 @@ import re
 # =====================
 # config 読み込み
 # =====================
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+def load_config(path="config.yaml"):
+    with open(path, "r") as f:
+        config = yaml.safe_load(f)
+
+    for env_key, env_val in os.environ.items():
+        if not env_key.startswith("CFG_"):
+            continue
+
+        # CFG_BOT_TOKEN -> ["bot", "token"]
+        keys = env_key[4:].lower().split("_")
+
+        ref = config
+        for k in keys[:-1]:
+            if k not in ref or not isinstance(ref[k], dict):
+                ref[k] = {}
+            ref = ref[k]
+
+        # 型変換
+        if env_val.lower() in ("true", "false"):
+            env_val = env_val.lower() == "true"
+        elif env_val.isdigit():
+            env_val = int(env_val)
+
+        ref[keys[-1]] = env_val
+
+    return config
+
+
+config = load_config()
 
 BOT_TOKEN = config['bot']['token']
 server = config['server']
