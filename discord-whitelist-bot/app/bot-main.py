@@ -13,37 +13,7 @@ import re
 def load_config(path="config.yaml"):
     with open(path, "r") as f:
         config = yaml.safe_load(f)
-
-    for env_key, env_val in os.environ.items():
-        if not env_key.startswith("CFG_"):
-            continue
-
-
-
-
-        # CFG_ を除去
-        raw = env_key[4:].lower()
-
-        # 最初の _ だけで分割
-        first, _, rest = raw.partition("_")
-        if not rest:
-            continue
-
-        section = first
-        key = rest
-
-        if section not in config or not isinstance(config[section], dict):
-            config[section] = {}
-
-        # 型変換
-        if env_val.lower() in ("true", "false"):
-            env_val = env_val.lower() == "true"
-        elif env_val.isdigit():
-            env_val = int(env_val)
-        config[section][key] = env_val
-
     return config
-
 
 config = load_config()
 
