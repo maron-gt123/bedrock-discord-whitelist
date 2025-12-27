@@ -25,7 +25,7 @@ spec:
             - sh
             - -c
             - |
-              cat /tmpl/config.yaml.tmpl \
+              cat /tmpl/config.yaml \
                 | sed "s|\${CFG_BOT_TOKEN}|$CFG_BOT_TOKEN|g" \
                 | sed "s|\${CFG_SERVER_APPLY_CHANNEL}|$CFG_SERVER_APPLY_CHANNEL|g" \
                 | sed "s|\${CFG_SERVER_APPROVE_CHANNEL}|$CFG_SERVER_APPROVE_CHANNEL|g" \
