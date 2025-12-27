@@ -1,15 +1,18 @@
+# =====================================
+# Discord Whitelist Bot Configuration
+# This file is a template.
+# Sensitive values must be supplied
+# via environment variables (CFG_*)
+# =====================================
+
 bot:
-  token: "${DISCORD_BOT_TOKEN}"
+  token: ""        # CFG_BOT_TOKEN
+  prefix: "!"
 
 server:
-  name: example_servername
-  description: "discordlog_name"
-  discord_guild: "${DISCORD_SERVER_ID}"
-  apply_channel: "${DISCORD_APPLY_CHANNELID}"
-  approve_channel: "${DISCORD_APPROVE_CHANNELID}"
-  admin_role: "${DISCORD_ADMINROLEID}"
+  apply_channel: 0   # CFG_SERVER_APPLY_CHANNEL
+  approve_channel: 0 # CFG_SERVER_APPROVE_CHANNEL
 
-  whitelist_file: "whitelist.json"
-  allowlist_file: "allowlist.json"
-
-  bds_reload: "kubectl exec -n mc-bedrock bedrock-s1-0 -- screen -S bedrock -X stuff 'allowlist reload\n'"
+minecraft:
+  whitelist_path: "./whitelist.json" # CFG_MINECRAFT_WHITELIST_PATH
+  allowlist_path: "./allowlist.json" # CFG_MINECRAFT_ALLOWLIST_PATH
