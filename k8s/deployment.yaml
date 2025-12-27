@@ -20,12 +20,13 @@ spec:
         fsGroup: 1000
       initContainers:
         - name: render-config
-          image: busybox
+          image: alpine:3.20
           command:
             - sh
             - -c
             - |
-              envsubst < /tmpl/config.yaml > /config/config.yaml
+              apk add --no-cache gettext \
+              && envsubst < /tmpl/config.yaml > /config/config.yaml
           envFrom:
             - secretRef:
                 name: secret-discordbot
