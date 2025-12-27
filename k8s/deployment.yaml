@@ -30,10 +30,14 @@ spec:
             - name: CFG_MINECRAFT_WHITELIST_FILE
             - name: CFG_MINECRAFT_ALLOWLIST_FILE
           volumeMounts:
+            - name: whitelist-data
+              mountPath: /data
             - name: config
               mountPath: /app/config.yaml
               subPath: config.yaml
       volumes:
+        - name: whitelist-data
+          emptyDir: {}
         - name: config
           configMap:
             name: discordbot-config
