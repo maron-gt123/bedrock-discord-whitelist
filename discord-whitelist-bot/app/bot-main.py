@@ -18,19 +18,27 @@ def load_config(path="config.yaml"):
         if not env_key.startswith("CFG_"):
             continue
 
-        keys = env_key[4:].lower().split("_")
-        ref = config
-        for k in keys[:-1]:
-            if k not in ref or not isinstance(ref[k], dict):
-                ref[k] = {}
-            ref = ref[k]
+        # CFG_ を除去
+        raw = env_key[4:].lower()
 
+        # 最初の _ だけで分割
+        first, _, rest = raw.partition("_")
+        if not rest:
+            continue
+
+        section = first
+        key = rest
+
+        if section not in config or not isinstance(config[section], dict):
+            config[section] = {}
+
+        # 型変換
         if env_val.lower() in ("true", "false"):
             env_val = env_val.lower() == "true"
         elif env_val.isdigit():
             env_val = int(env_val)
 
-        ref[keys[-1]] = env_val
+        config[section][key] = env_val
 
     return config
 
@@ -53,7 +61,7 @@ ALLOWLIST_FILE = mc["allowlist_file"]
 # =====================
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True  # ★重要
+intents.members = True
 bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 
 # =====================
