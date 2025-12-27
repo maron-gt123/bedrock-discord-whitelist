@@ -14,8 +14,8 @@ server:
   admin_role: ""      # CFG_SERVER_ADMIN_ROLE
 
 minecraft:
-  whitelist_file: ""  # CFG_MINECRAFT_WHITELIST_FILE
-  allowlist_file: ""  # CFG_MINECRAFT_ALLOWLIST_FILE
+  whitelist_file: "./whitelist.json"  # CFG_MINECRAFT_WHITELIST_FILE
+  allowlist_file: "./allowlist.json"  # CFG_MINECRAFT_ALLOWLIST_FILE
 
 commands:
   bds_reload: ""      # CFG_COMMANDS_BDS_RELOAD
