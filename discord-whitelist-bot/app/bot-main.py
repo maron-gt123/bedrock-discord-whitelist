@@ -53,6 +53,7 @@ ALLOWLIST_FILE = mc["allowlist_file"]
 # =====================
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True  # ★重要
 bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 
 # =====================
@@ -61,7 +62,7 @@ bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 apply_rate_limit = {}  # discord_id -> last_apply_time
 
 # =====================
-# ユーティリティ
+# JSON ユーティリティ
 # =====================
 def load_json(path, default):
     if os.path.exists(path):
@@ -71,12 +72,32 @@ def load_json(path, default):
 
 
 def save_json(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
     with open(tmp, "w") as f:
         json.dump(data, f, indent=2)
     os.replace(tmp, path)
 
 
+def load_whitelist():
+    return load_json(WHITELIST_FILE, {})
+
+
+def save_whitelist(data):
+    save_json(WHITELIST_FILE, data)
+
+
+def load_allowlist():
+    return load_json(ALLOWLIST_FILE, [])
+
+
+def save_allowlist(data):
+    save_json(ALLOWLIST_FILE, data)
+
+
+# =====================
+# ユーティリティ
+# =====================
 def is_valid_gamertag(name):
     if not (3 <= len(name) <= 16):
         return False
@@ -84,17 +105,10 @@ def is_valid_gamertag(name):
 
 
 def is_admin(member):
-    # DMなどで User の場合
     if not isinstance(member, discord.Member):
         return False
     return any(role.name == ADMIN_ROLE for role in member.roles)
 
-
-# =====================
-# データ読み込み
-# =====================
-whitelist = load_json(WHITELIST_FILE, {})
-allowlist = load_json(ALLOWLIST_FILE, [])
 
 # =====================
 # help コマンド
@@ -102,40 +116,46 @@ allowlist = load_json(ALLOWLIST_FILE, [])
 @bot.command()
 async def help(ctx):
     if ctx.guild is None:
-        await ctx.send("❌ このコマンドはサーバー内で実行してください")
+        await ctx.send("❌ サーバー内で実行してください")
         return
-    lines = []
-    lines.append("📖 **コマンド一覧**")
-    lines.append("")
 
-    lines.append("👤 **一般ユーザー**")
-    lines.append("`/apply <Gamertag>`")
-    lines.append("ホワイトリスト申請を行います")
-    lines.append("")
-    lines.append("`/wl_list pending`")
-    lines.append("申請中の一覧を表示します")
-    lines.append("")
+    lines = [
+        "📖 **コマンド一覧**",
+        "",
+        "👤 **一般ユーザー**",
+        "`/apply <Gamertag>`",
+        "ホワイトリスト申請を行います",
+        "",
+        "`/wl_list pending`",
+        "申請中の一覧を表示します",
+    ]
 
     if is_admin(ctx.author):
-        lines.append("🛠️ **管理者**")
-        lines.append("`/approve <Gamertag>`")
-        lines.append("申請を承認し allowlist に追加します")
-        lines.append("")
-        lines.append("`/revoke <Gamertag>`")
-        lines.append("ホワイトリスト・allowlist から削除します")
-        lines.append("")
-        lines.append("`/wl_list approved`")
-        lines.append("承認済み一覧を表示します")
+        lines += [
+            "",
+            "🛠️ **管理者**",
+            "`/approve <Gamertag>`",
+            "申請を承認します",
+            "",
+            "`/revoke <Gamertag>`",
+            "ホワイトリスト削除",
+            "",
+            "`/wl_list approved`",
+            "承認済み一覧",
+        ]
 
     await ctx.send("\n".join(lines))
 
+
 # =====================
-# 申請コマンド
+# 申請
 # =====================
 @bot.command()
 async def apply(ctx, *, gamertag):
     if ctx.channel.id != APPLY_CHANNEL:
         return
+
+    whitelist = load_whitelist()
 
     now = time.time()
     last = apply_rate_limit.get(ctx.author.id, 0)
@@ -148,25 +168,26 @@ async def apply(ctx, *, gamertag):
         await ctx.send("❌ Gamertag形式が不正です")
         return
 
+    if gamertag in whitelist:
+        await ctx.send("❌ このGamertagはすでに申請されています")
+        return
+
     for entry in whitelist.values():
         if entry["discordId"] == str(ctx.author.id) and entry["status"] == "pending":
             await ctx.send("❌ すでに申請中です")
             return
 
-    if gamertag in whitelist:
-        await ctx.send("❌ このGamertagはすでに申請されています")
-        return
-
     whitelist[gamertag] = {
         "discordId": str(ctx.author.id),
         "status": "pending",
     }
-    save_json(WHITELIST_FILE, whitelist)
 
+    save_whitelist(whitelist)
     await ctx.send(f"✅ 申請受付: **{gamertag}**")
 
+
 # =====================
-# 承認コマンド
+# 承認
 # =====================
 @bot.command()
 async def approve(ctx, *, gamertag):
@@ -175,6 +196,10 @@ async def approve(ctx, *, gamertag):
     if not is_admin(ctx.author):
         await ctx.send("❌ 権限がありません")
         return
+
+    whitelist = load_whitelist()
+    allowlist = load_allowlist()
+
     if gamertag not in whitelist:
         await ctx.send("❌ 申請が見つかりません")
         return
@@ -187,23 +212,24 @@ async def approve(ctx, *, gamertag):
                 data = await resp.json()
                 xuid = data["data"]["player"]["id"]
             except Exception:
-                await ctx.send(f"❌ XUID取得失敗: {gamertag}")
+                await ctx.send("❌ XUID取得失敗")
                 return
 
     if any(e["xuid"] == xuid for e in allowlist):
-        await ctx.send("⚠️ すでに登録済みのXUIDです")
+        await ctx.send("⚠️ すでに登録済みです")
         return
 
     allowlist.append({"name": gamertag, "xuid": xuid})
-    save_json(ALLOWLIST_FILE, allowlist)
-
     whitelist[gamertag]["status"] = "approved"
-    save_json(WHITELIST_FILE, whitelist)
+
+    save_allowlist(allowlist)
+    save_whitelist(whitelist)
 
     await ctx.send(f"✅ 承認完了: **{gamertag}**")
 
+
 # =====================
-# 削除コマンド
+# 削除
 # =====================
 @bot.command()
 async def revoke(ctx, *, gamertag):
@@ -213,22 +239,27 @@ async def revoke(ctx, *, gamertag):
         await ctx.send("❌ 権限がありません")
         return
 
-    whitelist.pop(gamertag, None)
-    save_json(WHITELIST_FILE, whitelist)
+    whitelist = load_whitelist()
+    allowlist = load_allowlist()
 
-    global allowlist
+    whitelist.pop(gamertag, None)
     allowlist = [e for e in allowlist if e["name"] != gamertag]
-    save_json(ALLOWLIST_FILE, allowlist)
+
+    save_whitelist(whitelist)
+    save_allowlist(allowlist)
 
     await ctx.send(f"🗑️ 削除完了: **{gamertag}**")
 
+
 # =====================
-# 一覧表示コマンド
+# 一覧
 # =====================
 @bot.command(name="wl_list")
 async def wl_list(ctx, status: str):
+    whitelist = load_whitelist()
+
     if status not in ("pending", "approved"):
-        await ctx.send("❌ `/wl_list pending` または `/wl_list approved`")
+        await ctx.send("❌ `/wl_list pending | approved`")
         return
 
     if status == "pending" and ctx.channel.id != APPLY_CHANNEL:
@@ -247,11 +278,12 @@ async def wl_list(ctx, status: str):
     ]
 
     if not items:
-        await ctx.send(f"📭 {status} の申請はありません")
+        await ctx.send(f"📭 {status} はありません")
         return
 
     msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
+
 
 # =====================
 # 起動
