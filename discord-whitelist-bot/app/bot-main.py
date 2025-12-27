@@ -101,6 +101,9 @@ allowlist = load_json(ALLOWLIST_FILE, [])
 # =====================
 @bot.command()
 async def help(ctx):
+    if ctx.guild is None:
+        await ctx.send("❌ このコマンドはサーバー内で実行してください")
+        return
     lines = []
     lines.append("📖 **コマンド一覧**")
     lines.append("")
