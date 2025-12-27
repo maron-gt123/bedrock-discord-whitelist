@@ -18,6 +18,24 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
+
+      initContainers:
+        - name: render-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              envsubst < /tmpl/config.yaml.tmpl > /config/config.yaml
+          envFrom:
+            - secretRef:
+                name: discordbot-secret
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: discordbot-config
+              mountPath: /tmpl
+              
       containers:
         - name: bot
           image: marongt123/bedrock-discord-whitelist:latest
@@ -39,5 +57,7 @@ spec:
         - name: whitelist-data
           emptyDir: {}
         - name: config
+          emptyDir: {}
+        - name: config-templete
           configMap:
             name: discordbot-config
