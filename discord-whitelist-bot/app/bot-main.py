@@ -84,6 +84,9 @@ def is_valid_gamertag(name):
 
 
 def is_admin(member):
+    # DMなどで User の場合
+    if not isinstance(member, discord.Member):
+        return False
     return any(role.name == ADMIN_ROLE for role in member.roles)
 
 
