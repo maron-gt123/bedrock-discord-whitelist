@@ -20,13 +20,17 @@ spec:
         fsGroup: 1000
       initContainers:
         - name: render-config
-          image: alpine:3.20
+          image: busybox:1.37.0
           command:
             - sh
             - -c
             - |
-              apk add --no-cache gettext \
-              && envsubst < /tmpl/config.yaml > /config/config.yaml
+              cat /tmpl/config.yaml.tmpl \
+                | sed "s|\${CFG_BOT_TOKEN}|$CFG_BOT_TOKEN|g" \
+                | sed "s|\${CFG_SERVER_APPLY_CHANNEL}|$CFG_SERVER_APPLY_CHANNEL|g" \
+                | sed "s|\${CFG_SERVER_APPROVE_CHANNEL}|$CFG_SERVER_APPROVE_CHANNEL|g" \
+                | sed "s|\${CFG_SERVER_ADMIN_ROLE}|$CFG_SERVER_ADMIN_ROLE|g" \
+                > /config/config.yaml
           envFrom:
             - secretRef:
                 name: secret-discordbot
