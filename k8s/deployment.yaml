@@ -6,6 +6,9 @@ metadata:
     app: discord-whitelist-bot
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: discord-whitelist-bot
   template:
     metadata:
       labels:
