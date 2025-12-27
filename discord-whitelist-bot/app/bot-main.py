@@ -107,7 +107,7 @@ def is_valid_gamertag(name):
 def is_admin(member):
     if not isinstance(member, discord.Member):
         return False
-    return any(role.name == ADMIN_ROLE for role in member.roles)
+    return any(str(role.id) == str(ADMIN_ROLE) for role in member.roles)
 
 
 # =====================
