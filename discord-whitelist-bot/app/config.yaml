@@ -6,13 +6,16 @@
 # =====================================
 
 bot:
-  token: ""        # CFG_BOT_TOKEN
-  prefix: "!"
+  token: ""  # CFG_BOT_TOKEN
 
 server:
-  apply_channel: 0   # CFG_SERVER_APPLY_CHANNEL
-  approve_channel: 0 # CFG_SERVER_APPROVE_CHANNEL
+  apply_channel: 0    # CFG_SERVER_APPLY_CHANNEL
+  approve_channel: 0  # CFG_SERVER_APPROVE_CHANNEL
+  admin_role: ""      # CFG_SERVER_ADMIN_ROLE
 
 minecraft:
-  whitelist_path: "./whitelist.json" # CFG_MINECRAFT_WHITELIST_PATH
-  allowlist_path: "./allowlist.json" # CFG_MINECRAFT_ALLOWLIST_PATH
+  whitelist_file: ""  # CFG_MINECRAFT_WHITELIST_FILE
+  allowlist_file: ""  # CFG_MINECRAFT_ALLOWLIST_FILE
+
+commands:
+  bds_reload: ""      # CFG_COMMANDS_BDS_RELOAD
