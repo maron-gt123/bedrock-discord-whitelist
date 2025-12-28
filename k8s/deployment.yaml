@@ -21,14 +21,13 @@ spec:
       containers:
         - name: bot
           image: marongt123/bedrock-discord-whitelist:latest
-          imagePullPolicy: Always
           volumeMounts:
-              subPath: config.yaml
             - name: whitelist-data
-              mountPath: /app/data
+              mountPath: /app
+            - name: discord-config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
       volumes:
-        - name: config
-          emptyDir: {}
         - name: whitelist-data
           emptyDir: {}
         - name: discord-config
