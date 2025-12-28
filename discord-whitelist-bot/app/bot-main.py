@@ -78,10 +78,21 @@ def is_valid_gamertag(name):
     return bool(re.match(r"^[A-Za-z0-9 ]+$", name))
 
 
+# =====================
+# チャンネル・権限ユーティリティ
+# =====================
 def is_admin(member):
-    if not isinstance(member, discord.Member):
-        return False
-    return any(str(role.id) == str(ADMIN_ROLE) for role in member.roles)
+    return any(role.id == ADMIN_ROLE for role in member.roles)
+
+def check_channel(ctx, command_type):
+    """コマンドタイプに応じてチャンネルを判定"""
+    if command_type == "apply":
+        return ctx.channel.id == APPLY_CHANNEL
+    if command_type in ("approve", "revoke", "wl_list_approved"):
+        return ctx.channel.id == APPROVE_CHANNEL
+    if command_type == "wl_list_pending":
+        return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
+    return False
 
 
 # =====================
@@ -126,7 +137,8 @@ async def help(ctx):
 # =====================
 @bot.command()
 async def apply(ctx, *, gamertag):
-    if ctx.channel.id != APPLY_CHANNEL:
+    if not check_channel(ctx, "apply"):
+        await ctx.send("❌ 申請用チャンネルで実行してください")
         return
 
     whitelist = load_whitelist()
@@ -165,7 +177,8 @@ async def apply(ctx, *, gamertag):
 # =====================
 @bot.command()
 async def approve(ctx, *, gamertag):
-    if ctx.channel.id != APPROVE_CHANNEL:
+    if not check_channel(ctx, "approve"):
+        await ctx.send("❌ 承認用チャンネルで実行してください")
         return
     if not is_admin(ctx.author):
         await ctx.send("❌ 権限がありません")
@@ -211,6 +224,9 @@ async def revoke(ctx, *, gamertag):
         return
     if not is_admin(ctx.author):
         await ctx.send("❌ 権限がありません")
+        return
+    if not check_channel(ctx, "revoke"):
+        await ctx.send("❌ 承認用チャンネルで実行してください")
         return
 
     whitelist = load_whitelist()
