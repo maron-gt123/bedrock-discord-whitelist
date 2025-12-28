@@ -31,7 +31,7 @@ spec:
             - name: ALLOWLIST_FILE
           volumeMounts:
             - name: whitelist-data
-              mountPath: /app/data
+              mountPath: /app
       volumes:
         - name: whitelist-data
           emptyDir: {}
