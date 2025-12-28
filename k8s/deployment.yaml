@@ -18,33 +18,12 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         fsGroup: 1000
-      initContainers:
-        - name: render-config
-          image: busybox:1.37.0
-          command:
-            - sh
-            - -c
-            - |
-              cat /tmpl/config.yaml \
-                | sed "s|\${CFG_BOT_TOKEN}|$CFG_BOT_TOKEN|g" \
-                | sed "s|\${CFG_SERVER_APPLY_CHANNEL}|$CFG_SERVER_APPLY_CHANNEL|g" \
-                | sed "s|\${CFG_SERVER_APPROVE_CHANNEL}|$CFG_SERVER_APPROVE_CHANNEL|g" \
-                | sed "s|\${CFG_SERVER_ADMIN_ROLE}|$CFG_SERVER_ADMIN_ROLE|g" \
-                > /config/config.yaml
-          envFrom:
-            - secretRef:
-                name: secret-discordbot
-          volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: config-template
-              mountPath: /tmpl
       containers:
         - name: bot
           image: marongt123/bedrock-discord-whitelist:latest
           imagePullPolicy: Always
           volumeMounts:
-            - name: config
+            - name: discord-config
               mountPath: /app/config.yaml
               subPath: config.yaml
             - name: whitelist-data
@@ -54,6 +33,6 @@ spec:
           emptyDir: {}
         - name: whitelist-data
           emptyDir: {}
-        - name: config-template
+        - name: discord-config
           configMap:
             name: discordbot-config
