@@ -48,7 +48,7 @@ spec:
               mountPath: /app/config.yaml
               subPath: config.yaml
             - name: whitelist-data
-              mountPath: /app
+              mountPath: /app/data
       volumes:
         - name: config
           emptyDir: {}
