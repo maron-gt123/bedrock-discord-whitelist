@@ -3,30 +3,24 @@ from discord.ext import commands
 import json
 import aiohttp
 import os
-import yaml
 import time
 import re
 
 # =====================
-# config 読み込み
+# 変数
 # =====================
-def load_config(path="config.yaml"):
-    with open(path, "r") as f:
-        config = yaml.safe_load(f)
-    return config
-
-config = load_config()
-
-BOT_TOKEN = config["bot"]["token"]
-
-server = config["server"]
-APPLY_CHANNEL = server["apply_channel"]
-APPROVE_CHANNEL = server["approve_channel"]
-ADMIN_ROLE = server["admin_role"]
-
-mc = config["minecraft"]
-WHITELIST_FILE = mc["whitelist_file"]
-ALLOWLIST_FILE = mc["allowlist_file"]
+# DiscordBOT　トークン
+BOT_TOKEN = "YOUR_BOT_TOKEN"
+# Discord サーバー関連
+## 申請チャンネルID
+APPLY_CHANNEL = 123456789012345678
+## 承認チャンネルID
+APPROVE_CHANNEL = 234567890123456789
+## 管理者ロールID
+ADMIN_ROLE = 345678901234567890
+# Minecraft関連
+WHITELIST_FILE = "./data/whitelist.json"
+ALLOWLIST_FILE = "./data/allowlist.json"
 
 # =====================
 # Discord Bot 初期化
