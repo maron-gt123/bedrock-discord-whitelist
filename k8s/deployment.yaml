@@ -34,5 +34,6 @@ spec:
               mountPath: /app/data
       volumes:
         - name: whitelist-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: 
 
