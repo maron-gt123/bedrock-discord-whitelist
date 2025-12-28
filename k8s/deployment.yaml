@@ -21,6 +21,7 @@ spec:
       containers:
         - name: bot
           image: marongt123/bedrock-discord-whitelist:latest
+          imagePullPolicy: Always
           env:
             - name: BOT_TOKEN
             - name: APPLY_CHANNEL
