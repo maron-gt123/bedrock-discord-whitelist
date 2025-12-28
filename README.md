@@ -53,7 +53,6 @@ Discord 上で申請 → 管理者承認 → `allowlist.json` 反映
 ## 環境変数
 環境変数は以下で設定してください
 ```
-```python
 # Discord BOT トークン
 BOT_TOKEN = "YOUR_BOT_TOKEN"
 
