@@ -30,29 +30,40 @@ bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 apply_rate_limit = {}  # discord_id -> last_apply_time
 
 # =====================
-# JSON ユーティリティ
+# JSON ユーティリティ（Stale handle 回避）
 # =====================
-def load_json(path, default):
-    if os.path.exists(path):
-        with open(path, "r") as f:
-            return json.load(f)
+def safe_load_json(path, default):
+    try:
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                data = json.load(f)
+                if isinstance(default, list) and not isinstance(data, list):
+                    data = []
+                elif isinstance(default, dict) and not isinstance(data, dict):
+                    data = {}
+                return data
+    except (OSError, json.JSONDecodeError):
+        pass
+    # ファイル新規作成
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(default, f, indent=2)
     return default
 
 def save_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
-    with open(tmp, "w") as f:
+    # NFS の Stale handle 回避のため直接上書き
+    with open(path, "w") as f:
         json.dump(data, f, indent=2)
-    os.replace(tmp, path)
 
 def load_whitelist():
-    return load_json(WHITELIST_FILE, {})
+    return safe_load_json(WHITELIST_FILE, {})
 
 def save_whitelist(data):
     save_json(WHITELIST_FILE, data)
 
 def load_allowlist():
-    return load_json(ALLOWLIST_FILE, [])
+    return safe_load_json(ALLOWLIST_FILE, [])
 
 def save_allowlist(data):
     save_json(ALLOWLIST_FILE, data)
@@ -72,7 +83,6 @@ def is_admin(member):
     return any(role.id == ADMIN_ROLE for role in member.roles)
 
 def check_channel(ctx, command_type):
-    """コマンドタイプに応じてチャンネルを判定"""
     if command_type == "apply":
         return ctx.channel.id == APPLY_CHANNEL
     if command_type in ("approve", "revoke", "wl_list_approved"):
