@@ -9,16 +9,10 @@ import re
 # =====================
 # 変数
 # =====================
-# DiscordBOT　トークン
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-# Discord サーバー関連
-## 申請チャンネルID
 APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
-## 承認チャンネルID
 APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
-## 管理者ロールID
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
-# Minecraft関連
 WHITELIST_FILE = "/app/data/whitelist.json"
 ALLOWLIST_FILE = "/app/data/allowlist.json"
 
@@ -44,7 +38,6 @@ def load_json(path, default):
             return json.load(f)
     return default
 
-
 def save_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     tmp = path + ".tmp"
@@ -52,22 +45,17 @@ def save_json(path, data):
         json.dump(data, f, indent=2)
     os.replace(tmp, path)
 
-
 def load_whitelist():
     return load_json(WHITELIST_FILE, {})
-
 
 def save_whitelist(data):
     save_json(WHITELIST_FILE, data)
 
-
 def load_allowlist():
     return load_json(ALLOWLIST_FILE, [])
 
-
 def save_allowlist(data):
     save_json(ALLOWLIST_FILE, data)
-
 
 # =====================
 # ユーティリティ
@@ -76,7 +64,6 @@ def is_valid_gamertag(name):
     if not (3 <= len(name) <= 16):
         return False
     return bool(re.match(r"^[A-Za-z0-9 ]+$", name))
-
 
 # =====================
 # チャンネル・権限ユーティリティ
@@ -93,7 +80,6 @@ def check_channel(ctx, command_type):
     if command_type == "wl_list_pending":
         return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     return False
-
 
 # =====================
 # help コマンド
@@ -130,7 +116,6 @@ async def help(ctx):
         ]
 
     await ctx.send("\n".join(lines))
-
 
 # =====================
 # 申請
@@ -171,7 +156,6 @@ async def apply(ctx, *, gamertag):
     save_whitelist(whitelist)
     await ctx.send(f"✅ 申請受付: **{gamertag}**")
 
-
 # =====================
 # 承認
 # =====================
@@ -192,9 +176,7 @@ async def approve(ctx, *, gamertag):
         return
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"https://playerdb.co/api/player/xbox/{gamertag}"
-        ) as resp:
+        async with session.get(f"https://playerdb.co/api/player/xbox/{gamertag}") as resp:
             try:
                 data = await resp.json()
                 xuid = data["data"]["player"]["id"]
@@ -214,19 +196,16 @@ async def approve(ctx, *, gamertag):
 
     await ctx.send(f"✅ 承認完了: **{gamertag}**")
 
-
 # =====================
 # 削除
 # =====================
 @bot.command()
 async def revoke(ctx, *, gamertag):
-    if ctx.channel.id != APPROVE_CHANNEL:
+    if not check_channel(ctx, "revoke"):
+        await ctx.send("❌ 承認用チャンネルで実行してください")
         return
     if not is_admin(ctx.author):
         await ctx.send("❌ 権限がありません")
-        return
-    if not check_channel(ctx, "revoke"):
-        await ctx.send("❌ 承認用チャンネルで実行してください")
         return
 
     whitelist = load_whitelist()
@@ -240,7 +219,6 @@ async def revoke(ctx, *, gamertag):
 
     await ctx.send(f"🗑️ 削除完了: **{gamertag}**")
 
-
 # =====================
 # 一覧
 # =====================
@@ -252,20 +230,18 @@ async def wl_list(ctx, status: str):
         await ctx.send("❌ `/wl_list pending | approved`")
         return
 
-    if status == "pending" and ctx.channel.id != APPLY_CHANNEL:
+    if status == "pending" and not check_channel(ctx, "wl_list_pending"):
+        await ctx.send("❌ このチャンネルでは実行できません")
         return
 
-    if status == "approved":
-        if ctx.channel.id != APPROVE_CHANNEL:
-            return
+    if status == "approved" and not check_channel(ctx, "wl_list_approved"):
         if not is_admin(ctx.author):
             await ctx.send("❌ 権限がありません")
             return
+        await ctx.send("❌ このチャンネルでは実行できません")
+        return
 
-    items = [
-        name for name, data in whitelist.items()
-        if data.get("status") == status
-    ]
+    items = [name for name, data in whitelist.items() if data.get("status") == status]
 
     if not items:
         await ctx.send(f"📭 {status} はありません")
@@ -273,7 +249,6 @@ async def wl_list(ctx, status: str):
 
     msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
-
 
 # =====================
 # 起動
