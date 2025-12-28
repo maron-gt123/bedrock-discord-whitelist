@@ -10,17 +10,17 @@ import re
 # 変数
 # =====================
 # DiscordBOT　トークン
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 # Discord サーバー関連
 ## 申請チャンネルID
-APPLY_CHANNEL = 123456789012345678
+APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
 ## 承認チャンネルID
-APPROVE_CHANNEL = 234567890123456789
+APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ## 管理者ロールID
-ADMIN_ROLE = 345678901234567890
+ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
 # Minecraft関連
-WHITELIST_FILE = "./data/whitelist.json"
-ALLOWLIST_FILE = "./data/allowlist.json"
+WHITELIST_FILE = "/app/data/whitelist.json"
+ALLOWLIST_FILE = "/app/data/allowlist.json"
 
 # =====================
 # Discord Bot 初期化
