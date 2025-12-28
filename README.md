@@ -46,3 +46,25 @@ Discord 上で申請 → 管理者承認 → `allowlist.json` 反映
 [Bot]
   - XUID取得
   - allowlist.json 更新
+
+
+---
+
+## 全体フロー
+
+```text
+# =====================
+# 変数
+# =====================
+# DiscordBOT　トークン
+BOT_TOKEN = "YOUR_BOT_TOKEN"
+# Discord サーバー関連
+## 申請チャンネルID
+APPLY_CHANNEL = 123456789012345678
+## 承認チャンネルID
+APPROVE_CHANNEL = 234567890123456789
+## 管理者ロールID
+ADMIN_ROLE = 345678901234567890
+# Minecraft関連
+WHITELIST_FILE = "./data/whitelist.json"
+ALLOWLIST_FILE = "./data/allowlist.json"
