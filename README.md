@@ -30,7 +30,7 @@ Discord 上で申請 → 管理者承認 → `allowlist.json` 反映
 
 ## 全体フロー
 
-```text
+```
 [参加者]
   ↓ Discord
 /apply Gamertag
@@ -46,43 +46,23 @@ Discord 上で申請 → 管理者承認 → `allowlist.json` 反映
 [Bot]
   - XUID取得
   - allowlist.json 更新
+```
 
+---
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# =====================
-# 変数
-# =====================
+## 環境変数
+環境変数は以下で設定してください
+```
+```python
 # Discord BOT トークン
 BOT_TOKEN = "YOUR_BOT_TOKEN"
 
 # Discord サーバー関連
-## 申請チャンネルID
 APPLY_CHANNEL = 123456789012345678
-## 承認チャンネルID
 APPROVE_CHANNEL = 234567890123456789
-## 管理者ロールID
 ADMIN_ROLE = 345678901234567890
 
 # Minecraft関連
 WHITELIST_FILE = "./data/whitelist.json"
 ALLOWLIST_FILE = "./data/allowlist.json"
-
-# =====================
-# ここから Bot 本体処理
-# =====================
-# 例: discord.py を使ったイベントハンドラやコマンドの定義
-# この設定を使って申請・承認フローを制御します
+```
