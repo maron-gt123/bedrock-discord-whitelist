@@ -10,22 +10,17 @@ Discord 上で申請 → 管理者承認 → `allowlist.json` 反映
 
 ## 特徴
 
-- 🧾 Discord からホワイトリスト申請
+- 🧾 Discord からbot経由でホワイトリスト申請
 - ✅ 管理者による承認 / 削除
-- 🔐 攻撃・誤操作を考慮した安全設計
+- 🔐 承認行為を実装しているため、不特定多数のログイン防止
 - 🧠 JSON ベース（DB 不要）
-- 🐍 Python 製（discord.py）
-- ☸ Kubernetes / 自宅サーバー運用と相性◎
-
 ---
 
 ## 想定ユースケース
 
-- 自宅運用の Bedrock Dedicated Server
-- 身内・小〜中規模コミュニティ
-- Geyser 未使用（統合版専用）
+- 自宅及びVPS運用の Bedrock Dedicated Server
 - Discord を入口にした参加管理
-
+- ある一定のログイン対象者を選択するサーバーを運用したい場合に最適
 ---
 
 ## 全体フロー
