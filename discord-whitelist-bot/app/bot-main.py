@@ -13,8 +13,10 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
 APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
-WHITELIST_FILE = "/app/data/whitelist.json"
-ALLOWLIST_FILE = "/app/data/allowlist.json"
+BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE")
+BEDROCK_POD = os.environ.get("BEDROCK_POD")
+WHITELIST_FILE = "/app/whitelist.json"
+ALLOWLIST_FILE = "/app/allowlist.json"
 
 # =====================
 # Discord Bot 初期化
@@ -90,6 +92,34 @@ def check_channel(ctx, command_type):
     if command_type == "wl_list_pending":
         return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     return False
+
+# =====================
+# Bedrock allowlist reload
+# =====================
+BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE")
+BEDROCK_POD = os.environ.get("BEDROCK_POD")
+
+def reload_bedrock_allowlist() -> bool:
+    if not BEDROCK_NAMESPACE or not BEDROCK_POD:
+        print("[ERROR] BEDROCK_NAMESPACE or BEDROCK_POD is not set")
+        return False
+
+    cmd = [
+        "kubectl",
+        "exec",
+        "-n", BEDROCK_NAMESPACE,
+        BEDROCK_POD,
+        "--",
+        "send-command",
+        "allowlist reload",
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] allowlist reload failed: {e}")
+        return False
 
 # =====================
 # help コマンド
@@ -259,6 +289,21 @@ async def wl_list(ctx, status: str):
 
     msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
+
+@bot.command(name="allowlist_reload")
+async def allowlist_reload(ctx):
+    if not check_channel(ctx, "approve"):
+        await ctx.send("❌ 承認用チャンネルで実行してください")
+        return
+
+    if not is_admin(ctx.author):
+        await ctx.send("❌ 権限がありません")
+        return
+
+    if reload_bedrock_allowlist():
+        await ctx.send("🔄 **allowlist reload を実行しました**")
+    else:
+        await ctx.send("❌ allowlist reload に失敗しました")
 
 # =====================
 # 起動
