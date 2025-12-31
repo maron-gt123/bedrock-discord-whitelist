@@ -14,8 +14,8 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
 APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
-BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE")
-BEDROCK_POD = os.environ.get("BEDROCK_POD")
+BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE",0)
+BEDROCK_POD = os.environ.get("BEDROCK_POD",0)
 WHITELIST_FILE = "/app/whitelist.json"
 ALLOWLIST_FILE = "/app/allowlist.json"
 
@@ -95,7 +95,7 @@ def check_channel(ctx, command_type):
     return False
 
 # =====================
-# Bedrock allowlist reload
+# Bedrock コマンド実行
 # =====================
 def reload_bedrock_allowlist() -> bool:
     if not BEDROCK_NAMESPACE or not BEDROCK_POD:
@@ -147,10 +147,12 @@ async def help(ctx):
             "申請を承認します",
             "",
             "`/revoke <Gamertag>`",
-            "ホワイトリスト削除",
+            "ホワイトリスト削除します",
             "",
             "`/wl_list approved`",
-            "承認済み一覧",
+            "承認済み一覧を表示します",
+            "`/allowlist_reload`",
+            "Bedrock サーバーの allowlist を反映します",
         ]
 
     await ctx.send("\n".join(lines))
