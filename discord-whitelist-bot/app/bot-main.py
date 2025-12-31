@@ -16,8 +16,8 @@ APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
 BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE",0)
 BEDROCK_POD = os.environ.get("BEDROCK_POD",0)
-WHITELIST_FILE = "/app/whitelist.json"
-ALLOWLIST_FILE = "/app/allowlist.json"
+WHITELIST_FILE = "/app/data/whitelist.json"
+ALLOWLIST_FILE = "/app/data/allowlist.json"
 
 # =====================
 # Discord Bot 初期化
