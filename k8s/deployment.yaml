@@ -31,7 +31,7 @@ spec:
             - name: BEDROCK_POD
           volumeMounts:
             - name: whitelist-data
-              mountPath: /app/data
+              mountPath: /app
       volumes:
         - name: whitelist-data
           persistentVolumeClaim:
