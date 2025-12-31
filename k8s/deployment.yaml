@@ -29,6 +29,8 @@ spec:
             - name: ADMIN_ROLE
             - name: WHITELIST_FILE
             - name: ALLOWLIST_FILE
+            - name: BEDROCK_NAMESPACE
+            - name: BEDROCK_POD
           volumeMounts:
             - name: whitelist-data
               mountPath: /app/data
