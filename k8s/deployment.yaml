@@ -27,8 +27,6 @@ spec:
             - name: APPLY_CHANNEL
             - name: APPROVE_CHANNEL
             - name: ADMIN_ROLE
-            - name: WHITELIST_FILE
-            - name: ALLOWLIST_FILE
             - name: BEDROCK_NAMESPACE
             - name: BEDROCK_POD
           volumeMounts:
