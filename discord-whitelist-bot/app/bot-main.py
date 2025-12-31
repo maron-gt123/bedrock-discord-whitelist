@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import json
 import aiohttp
+import subprocess
 import os
 import time
 import re
@@ -96,9 +97,6 @@ def check_channel(ctx, command_type):
 # =====================
 # Bedrock allowlist reload
 # =====================
-BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE")
-BEDROCK_POD = os.environ.get("BEDROCK_POD")
-
 def reload_bedrock_allowlist() -> bool:
     if not BEDROCK_NAMESPACE or not BEDROCK_POD:
         print("[ERROR] BEDROCK_NAMESPACE or BEDROCK_POD is not set")
