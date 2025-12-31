@@ -151,6 +151,7 @@ async def help(ctx):
             "",
             "`/wl_list approved`",
             "承認済み一覧を表示します",
+            "",
             "`/allowlist_reload`",
             "Bedrock サーバーの allowlist を反映します",
         ]
