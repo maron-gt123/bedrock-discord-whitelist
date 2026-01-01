@@ -1,13 +1,18 @@
-# ---------- stage 1: send-command を取得 ----------
-FROM itzg/minecraft-bedrock-server AS bedrock
-# ---------- stage 2: discord bot ----------
 FROM python:3.12-slim
 # コンテナ内の作業ディレクトリ
 WORKDIR /app
-# send-command をコピー
+
+# kubectl install
+RUN apt-get update && apt-get install -y curl ca-certificates \
+ && curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl \
+ && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+ && rm kubectl \
+ && apt-get clean
+
+# send-command
 COPY --from=bedrock /usr/local/bin/send-command /usr/local/bin/send-command
-# 実行権限を付与
 RUN chmod +x /usr/local/bin/send-command
+
 # 依存関係
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
