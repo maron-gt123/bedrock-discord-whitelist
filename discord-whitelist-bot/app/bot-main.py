@@ -299,7 +299,7 @@ async def reload(ctx):
         await ctx.send("❌ 権限がありません")
         return
 
-    ok = bedrock_cmd("allowlist reload")
+    ok = bedrock_cmd("allowlist", "reload")
 
     if ok:
         await ctx.send("🔄 allowlist reload を実行しました")
