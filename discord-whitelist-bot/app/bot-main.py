@@ -131,14 +131,13 @@ def check_channel(ctx, command_type):
     if command_type == "wl_list_pending":
         return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     return False
-
 # =====================
 # help コマンド
 # =====================
-@bot.command()
-async def help(ctx):
-    if ctx.guild is None:
-        await ctx.send("❌ サーバー内で実行してください")
+@bot.group()
+async def wl(ctx):
+    if ctx.invoked_subcommand is None:
+        await ctx.send("使い方は `/wl help` を見てください")
         return
 
     lines = [
@@ -151,7 +150,6 @@ async def help(ctx):
         "`/wl_list pending`",
         "申請中の一覧を表示します",
     ]
-
     if is_admin(ctx.author):
         lines += [
             "",
@@ -170,7 +168,6 @@ async def help(ctx):
         ]
 
     await ctx.send("\n".join(lines))
-
 # =====================
 # 申請
 # =====================
