@@ -80,6 +80,7 @@ def bedrock_cmd(*args) -> bool:
     try:
         cmd = [
             "kubectl", "exec", "-n", "mc-haramis", "mc-bedrock-0",
+            "-c", "mc-bedrock",
             "--", "send-command", *args
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
