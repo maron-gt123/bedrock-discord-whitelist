@@ -70,15 +70,23 @@ def save_allowlist(data):
     save_json(ALLOWLIST_FILE, data)
 
 # =====================
-# Bedrock コマンド送信（FIFO）
+# Bedrock コマンド送信（kubectl exec + send-command）
 # =====================
-BEDROCK_STDIN = "/tmp/bedrock.stdin"
-
-def bedrock_cmd(cmd: str) -> bool:
+def bedrock_cmd(*args) -> bool:
+    """
+    Bedrock サーバにコマンドを送信する
+    例: bedrock_cmd("allowlist", "reload")
+    """
     try:
-        with open(BEDROCK_STDIN, "w") as f:
-            f.write(cmd + "\n")
-        return True
+        cmd = [
+            "kubectl", "exec", "-n", "mc-haramis", "mc-bedrock-0",
+            "--", "send-command", *args
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        print(result.stdout)
+        if result.returncode == 0:
+            return True
+        return False
     except Exception as e:
         print(f"[ERROR] Bedrock command failed: {e}")
         return False
