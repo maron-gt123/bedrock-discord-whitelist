@@ -70,7 +70,7 @@ def save_allowlist(data):
     save_json(ALLOWLIST_FILE, data)
 
 # =====================
-# Bedrock コマンド送信（kubectl exec + send-command）
+# Bedrock コマンド送信
 # =====================
 def bedrock_cmd(*args) -> bool:
     """
@@ -78,16 +78,14 @@ def bedrock_cmd(*args) -> bool:
     例: bedrock_cmd("allowlist", "reload")
     """
     try:
-        cmd = [
-            "kubectl", "exec", "-n", "mc-haramis", "mc-bedrock-0",
-            "-c", "mc-bedrock",
-            "--", "send-command", *args
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        print(result.stdout)
-        if result.returncode == 0:
-            return True
-        return False
+        cmd = ["send-command", *args]
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True
+        )
+        print(result.stdout, result.stderr)
+        return result.returncode == 0
     except Exception as e:
         print(f"[ERROR] Bedrock command failed: {e}")
         return False
