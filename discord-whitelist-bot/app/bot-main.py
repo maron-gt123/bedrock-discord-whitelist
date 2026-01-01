@@ -14,8 +14,6 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
 APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
-BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE",0)
-BEDROCK_POD = os.environ.get("BEDROCK_POD",0)
 WHITELIST_FILE = "/app/data/whitelist.json"
 ALLOWLIST_FILE = "/app/data/allowlist.json"
 
@@ -95,31 +93,6 @@ def check_channel(ctx, command_type):
     return False
 
 # =====================
-# Bedrock コマンド実行
-# =====================
-def reload_bedrock_allowlist() -> bool:
-    if not BEDROCK_NAMESPACE or not BEDROCK_POD:
-        print("[ERROR] BEDROCK_NAMESPACE or BEDROCK_POD is not set")
-        return False
-
-    cmd = [
-        "kubectl",
-        "exec",
-        "-n", BEDROCK_NAMESPACE,
-        BEDROCK_POD,
-        "--",
-        "send-command",
-        "allowlist reload",
-    ]
-
-    try:
-        subprocess.run(cmd, check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"[ERROR] allowlist reload failed: {e}")
-        return False
-
-# =====================
 # help コマンド
 # =====================
 @bot.command()
@@ -151,9 +124,6 @@ async def help(ctx):
             "",
             "`/wl_list approved`",
             "承認済み一覧を表示します",
-            "",
-            "`/allowlist_reload`",
-            "Bedrock サーバーの allowlist を反映します",
         ]
 
     await ctx.send("\n".join(lines))
@@ -197,6 +167,7 @@ async def apply(ctx, *, gamertag):
     save_whitelist(whitelist)
     await ctx.send(f"✅ 申請受付: **{gamertag}**")
 
+    
 # =====================
 # 承認
 # =====================
@@ -290,21 +261,6 @@ async def wl_list(ctx, status: str):
 
     msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
-
-@bot.command(name="allowlist_reload")
-async def allowlist_reload(ctx):
-    if not check_channel(ctx, "approve"):
-        await ctx.send("❌ 承認用チャンネルで実行してください")
-        return
-
-    if not is_admin(ctx.author):
-        await ctx.send("❌ 権限がありません")
-        return
-
-    if reload_bedrock_allowlist():
-        await ctx.send("🔄 **allowlist reload を実行しました**")
-    else:
-        await ctx.send("❌ allowlist reload に失敗しました")
 
 # =====================
 # 起動
