@@ -75,22 +75,21 @@ def save_allowlist(data):
 # =====================
 # Bedrock コマンド送信
 # =====================
-def bedrock_cmd(*args) -> bool:
-    """
-    kubectl exec 経由で Bedrock にコマンド送信
-    """
+def bedrock_cmd(command: str) -> bool:
     try:
-        # 対象 Pod 名を取得
-        get_pod_cmd = [
-            "kubectl", "get", "pod",
-            "-n", BEDROCK_NAMESPACE,
-            "-l", BEDROCK_POD_SELECTOR,
-            "-o", "jsonpath={.items[0].metadata.name}"
-        ]
-        pod = subprocess.check_output(get_pod_cmd, text=True).strip()
+        pod = subprocess.check_output(
+            [
+                "kubectl", "get", "pod",
+                "-n", BEDROCK_NAMESPACE,
+                "-l", BEDROCK_POD_SELECTOR,
+                "-o", "jsonpath={.items[0].metadata.name}"
+            ],
+            text=True
+        ).strip()
 
         exec_cmd = [
             "kubectl", "exec",
+            "-i",
             "-n", BEDROCK_NAMESPACE,
             pod,
         ]
@@ -98,21 +97,23 @@ def bedrock_cmd(*args) -> bool:
         if BEDROCK_CONTAINER:
             exec_cmd += ["-c", BEDROCK_CONTAINER]
 
-        exec_cmd += ["--", "send-command", *args]
+        exec_cmd += ["--", "send-command", command]
 
         result = subprocess.run(
             exec_cmd,
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True
         )
 
-        print(result.stdout, result.stderr)
+        print(result.stdout)
+        print(result.stderr)
+
         return result.returncode == 0
 
     except Exception as e:
         print(f"[ERROR] kubectl exec failed: {e}")
         return False
-        
 # =====================
 # ユーティリティ
 # =====================
@@ -322,7 +323,7 @@ async def reload(ctx):
         await ctx.send("❌ 権限がありません")
         return
 
-    ok = bedrock_cmd("allowlist", "reload")
+    ok = bedrock_cmd("allowlist reload")
 
     if ok:
         await ctx.send("🔄 allowlist reload を実行しました")
