@@ -70,6 +70,20 @@ def save_allowlist(data):
     save_json(ALLOWLIST_FILE, data)
 
 # =====================
+# Bedrock コマンド送信（FIFO）
+# =====================
+BEDROCK_STDIN = "/tmp/bedrock.stdin"
+
+def bedrock_cmd(cmd: str) -> bool:
+    try:
+        with open(BEDROCK_STDIN, "w") as f:
+            f.write(cmd + "\n")
+        return True
+    except Exception as e:
+        print(f"[ERROR] Bedrock command failed: {e}")
+        return False
+
+# =====================
 # ユーティリティ
 # =====================
 def is_valid_gamertag(name):
@@ -124,6 +138,9 @@ async def help(ctx):
             "",
             "`/wl_list approved`",
             "承認済み一覧を表示します",
+            "",
+            "`/reload`",
+            "Bedrock allowlist を再読み込みします",
         ]
 
     await ctx.send("\n".join(lines))
@@ -261,6 +278,26 @@ async def wl_list(ctx, status: str):
 
     msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
+
+# =====================
+# allowlist reload
+# =====================
+@bot.command()
+async def reload(ctx):
+    if not check_channel(ctx, "approve"):
+        await ctx.send("❌ 管理用チャンネルで実行してください")
+        return
+
+    if not is_admin(ctx.author):
+        await ctx.send("❌ 権限がありません")
+        return
+
+    ok = bedrock_cmd("allowlist reload")
+
+    if ok:
+        await ctx.send("🔄 allowlist reload を実行しました")
+    else:
+        await ctx.send("❌ Bedrock へのコマンド送信に失敗しました")
 
 # =====================
 # 起動
