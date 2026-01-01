@@ -15,7 +15,7 @@ APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
 APPROVE_CHANNEL = int(os.environ.get("APPROVE_CHANNEL", 0))
 ADMIN_ROLE = int(os.environ.get("ADMIN_ROLE", 0))
 BEDROCK_NAMESPACE = os.environ.get("BEDROCK_NAMESPACE")
-BEDROCK_POD_SELECTOR = os.environ.get("BEDROCK_POD_SELECTOR")
+BEDROCK_POD = os.environ.get("BEDROCK_POD")
 BEDROCK_CONTAINER = os.environ.get("BEDROCK_CONTAINER", "")
 WHITELIST_FILE = "/app/data/whitelist.json"
 ALLOWLIST_FILE = "/app/data/allowlist.json"
@@ -75,45 +75,40 @@ def save_allowlist(data):
 # =====================
 # Bedrock コマンド送信
 # =====================
-def bedrock_cmd(command: str) -> bool:
+def bedrock_cmd(*args) -> bool:
+    """
+    kubectl exec 経由で Bedrock にコマンド送信
+    """
     try:
-        pod = subprocess.check_output(
-            [
-                "kubectl", "get", "pod",
-                "-n", BEDROCK_NAMESPACE,
-                "-l", BEDROCK_POD_SELECTOR,
-                "-o", "jsonpath={.items[0].metadata.name}"
-            ],
-            text=True
-        ).strip()
+        if not BEDROCK_POD:
+            raise RuntimeError("BEDROCK_POD is not set")
 
         exec_cmd = [
             "kubectl", "exec",
-            "-i",
             "-n", BEDROCK_NAMESPACE,
-            pod,
+            BEDROCK_POD,
         ]
 
         if BEDROCK_CONTAINER:
             exec_cmd += ["-c", BEDROCK_CONTAINER]
 
-        exec_cmd += ["--", "send-command", command]
+        exec_cmd += ["--", "send-command", *args]
 
         result = subprocess.run(
             exec_cmd,
-            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True
         )
 
-        print(result.stdout)
-        print(result.stderr)
+        print("STDOUT:", result.stdout)
+        print("STDERR:", result.stderr)
 
         return result.returncode == 0
 
     except Exception as e:
         print(f"[ERROR] kubectl exec failed: {e}")
         return False
+
 # =====================
 # ユーティリティ
 # =====================
