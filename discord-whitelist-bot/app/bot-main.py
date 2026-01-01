@@ -131,6 +131,7 @@ def check_channel(ctx, command_type):
     if command_type == "wl_list_pending":
         return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     return False
+
 # =====================
 # help コマンド
 # =====================
@@ -138,8 +139,9 @@ def check_channel(ctx, command_type):
 async def wl(ctx):
     if ctx.invoked_subcommand is None:
         await ctx.send("使い方は `/wl help` を見てください")
-        return
-
+        
+@wl.command(name="help")
+async def wl_help(ctx):
     lines = [
         "📖 **コマンド一覧**",
         "",
@@ -150,6 +152,7 @@ async def wl(ctx):
         "`/wl_list pending`",
         "申請中の一覧を表示します",
     ]
+
     if is_admin(ctx.author):
         lines += [
             "",
@@ -168,6 +171,7 @@ async def wl(ctx):
         ]
 
     await ctx.send("\n".join(lines))
+
 # =====================
 # 申請
 # =====================
