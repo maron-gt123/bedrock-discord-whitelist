@@ -130,13 +130,23 @@ def check_channel(ctx, command_type):
 # =====================
 # help コマンド
 # =====================
-@bot.group()
+@bot.group(invoke_without_command=True)
 async def wl(ctx):
+    """/wl 単体で簡易ヘルプを表示"""
     if ctx.invoked_subcommand is None:
-        await ctx.send(MESSAGES["help_header"])
-        
+        # 簡易ヘルプだけ送る
+        lines = [
+            MESSAGES["help_header"],
+            "",
+            MESSAGES["user_section"],
+            MESSAGES["help_apply"],
+            MESSAGES["help_pending"],
+        ]
+        await ctx.send("\n".join(lines))
+
 @wl.command(name="help")
 async def wl_help(ctx):
+    """/wl help で詳細ヘルプを表示"""
     lines = [
         MESSAGES["help_header"],
         "",
