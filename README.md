@@ -41,6 +41,8 @@ docker run -d \
   -e BOT_TOKEN="your_token" \
 ```
 
+---
+
 ## 🖥 Requirements
 
 - Python 3.10 or higher (not required if using the Docker image)  
