@@ -81,31 +81,24 @@ def save_allowlist(data):
 # Bedrock コマンド送信
 # =====================
 def bedrock_cmd(*args) -> bool:
-    try:
-        if not BEDROCK_POD:
-            raise RuntimeError("BEDROCK_POD is not set")
-
-        exec_cmd = [
-            "kubectl", "exec",
-            "-n", BEDROCK_NAMESPACE,
-            BEDROCK_POD,
-        ]
-
-        if BEDROCK_CONTAINER:
-            exec_cmd += ["-c", BEDROCK_CONTAINER]
-
-        exec_cmd += ["--", "send-command", *args]
-
-        result = subprocess.run(exec_cmd, capture_output=True, text=True)
-
-        print("STDOUT:", result.stdout)
-        print("STDERR:", result.stderr)
-
-        return result.returncode == 0
-
-    except Exception as e:
-        print(f"[ERROR] kubectl exec failed: {e}")
+    if not BEDROCK_POD:
+        print("[ERROR] BEDROCK_POD is not set")
         return False
+
+    exec_cmd = [
+        "kubectl", "exec",
+        "-n", BEDROCK_NAMESPACE,
+        BEDROCK_POD,
+    ]
+    if BEDROCK_CONTAINER:
+        exec_cmd += ["-c", BEDROCK_CONTAINER]
+
+    exec_cmd += ["--", "send-command", *args]
+
+    result = subprocess.run(exec_cmd, capture_output=True, text=True)
+    print("STDOUT:", result.stdout)
+    print("STDERR:", result.stderr)
+    return result.returncode == 0
 
 # =====================
 # ユーティリティ
@@ -144,6 +137,7 @@ async def wl_help(ctx, cmd: str = None):
                 MESSAGES["help_reload"],
             ]
         await ctx.send("\n".join(lines))
+
 # =====================
 # 申請
 # =====================
