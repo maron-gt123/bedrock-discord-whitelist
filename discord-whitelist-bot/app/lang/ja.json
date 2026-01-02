@@ -1,5 +1,4 @@
 {
-  "help_header": "使い方は `/wl help` を見てください",
   "user_section": "👤 **一般ユーザー**",
   "help_apply": "`/apply <Gamertag>` ホワイトリスト申請",
   "help_pending": "`/wl_list pending` 申請中の一覧を表示",
