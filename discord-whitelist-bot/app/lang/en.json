@@ -10,7 +10,7 @@
   "help_reload": "`/reload` Reload Bedrock allowlist",
   "apply_channel_error": "❌ Please use the application channel",
   "rate_limit": "⏳ You can only apply once every 60 seconds",
-  "gamertag_not_found": "❌ Gamertag **{gamertag}** not found"
+  "gamertag_not_found": "❌ Gamertag **{gamertag}** not found",
   "invalid_gamertag": "❌ Invalid Gamertag format",
   "already_applied": "❌ This Gamertag has already been applied",
   "already_pending": "❌ You already have a pending application",
