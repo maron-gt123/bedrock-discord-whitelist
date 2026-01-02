@@ -117,18 +117,13 @@ def check_channel(ctx, command_type):
     return False
 
 # =====================
-# /wl コマンド（ヘルプ専用）
+# /wl help
 # =====================
-@bot.command(name="wl")
-async def wl(ctx, subcommand: str = None):
+@bot.command(name="wl_help")
+async def wl_help(ctx):
     """
-    /wl help → ヘルプ表示
-    それ以外 → 案内メッセージ
+    /wl help でコマンド一覧表示
     """
-    if subcommand != "help":
-        await ctx.send(f"使い方は /wl help を見てください")
-        return
-
     lines = [
         MESSAGES["user_section"],
         MESSAGES["help_apply"],
@@ -145,7 +140,6 @@ async def wl(ctx, subcommand: str = None):
             MESSAGES["help_reload"],
         ]
 
-    # ここでMESSAGESだけから構成する → 日本語ハードコードは残さない
     await ctx.send("\n".join(lines))
 
 # =====================
@@ -157,6 +151,24 @@ async def apply(ctx, *, gamertag):
         await ctx.send(MESSAGES["apply_channel_error"])
         return
 
+    # 形式チェック
+    if not is_valid_gamertag(gamertag):
+        await ctx.send(MESSAGES["invalid_gamertag"])
+        return
+
+    # PlayerDB で存在確認
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(f"https://playerdb.co/api/player/xbox/{gamertag}") as resp:
+                data = await resp.json()
+                if not data.get("data") or not data["data"].get("player"):
+                    await ctx.send(MESSAGES["gamertag_not_found"].format(gamertag=gamertag))
+                    return
+        except Exception:
+            await ctx.send(MESSAGES["xuid_fail"])
+            return
+
+    # レート制限・重複申請
     whitelist = load_whitelist()
     now = time.time()
     last = apply_rate_limit.get(ctx.author.id, 0)
@@ -164,10 +176,6 @@ async def apply(ctx, *, gamertag):
         await ctx.send(MESSAGES["rate_limit"])
         return
     apply_rate_limit[ctx.author.id] = now
-
-    if not is_valid_gamertag(gamertag):
-        await ctx.send(MESSAGES["invalid_gamertag"])
-        return
 
     if gamertag in whitelist:
         await ctx.send(MESSAGES["already_applied"])
@@ -178,6 +186,7 @@ async def apply(ctx, *, gamertag):
             await ctx.send(MESSAGES["already_pending"])
             return
 
+    # 申請登録
     whitelist[gamertag] = {"discordId": str(ctx.author.id), "status": "pending"}
     save_whitelist(whitelist)
     await ctx.send(MESSAGES["apply_success"].format(gamertag=gamertag))
