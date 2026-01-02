@@ -110,8 +110,15 @@ def is_admin(member):
     return any(role.id == ADMIN_ROLE for role in member.roles)
 
 def check_channel(ctx, command_type):
-    if command_type in ("apply", "wl_list_pending"):
+    """
+    apply: 申請チャンネルのみ
+    wl_list_pending: 申請 or 承認チャンネルで表示可能
+    その他: 承認チャンネル
+    """
+    if command_type == "apply":
         return ctx.channel.id == APPLY_CHANNEL
+    if command_type == "wl_list_pending":
+        return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     if command_type in ("approve", "revoke", "wl_list_approved", "reload"):
         return ctx.channel.id == APPROVE_CHANNEL
     return False
@@ -121,15 +128,11 @@ def check_channel(ctx, command_type):
 # =====================
 @bot.command(name="wl_help")
 async def wl_help(ctx):
-    """
-    /wl help でコマンド一覧表示
-    """
     lines = [
         MESSAGES["user_section"],
         MESSAGES["help_apply"],
         MESSAGES["help_pending"],
     ]
-
     if is_admin(ctx.author):
         lines += [
             "",
@@ -139,7 +142,6 @@ async def wl_help(ctx):
             MESSAGES["help_list_approved"],
             MESSAGES["help_reload"],
         ]
-
     await ctx.send("\n".join(lines))
 
 # =====================
@@ -151,12 +153,10 @@ async def apply(ctx, *, gamertag):
         await ctx.send(MESSAGES["apply_channel_error"])
         return
 
-    # 形式チェック
     if not is_valid_gamertag(gamertag):
         await ctx.send(MESSAGES["invalid_gamertag"])
         return
 
-    # PlayerDB で存在確認
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(f"https://playerdb.co/api/player/xbox/{gamertag}") as resp:
@@ -168,7 +168,6 @@ async def apply(ctx, *, gamertag):
             await ctx.send(MESSAGES["xuid_fail"])
             return
 
-    # レート制限・重複申請
     whitelist = load_whitelist()
     now = time.time()
     last = apply_rate_limit.get(ctx.author.id, 0)
@@ -180,17 +179,35 @@ async def apply(ctx, *, gamertag):
     if gamertag in whitelist:
         await ctx.send(MESSAGES["already_applied"])
         return
-
     for entry in whitelist.values():
         if entry["discordId"] == str(ctx.author.id) and entry["status"] == "pending":
             await ctx.send(MESSAGES["already_pending"])
             return
 
-    # 申請登録
     whitelist[gamertag] = {"discordId": str(ctx.author.id), "status": "pending"}
     save_whitelist(whitelist)
     await ctx.send(MESSAGES["apply_success"].format(gamertag=gamertag))
 
+# =====================
+# /cancel
+# =====================
+@bot.command()
+async def cancel(ctx):
+    whitelist = load_whitelist()
+    to_remove = None
+    for gamertag, entry in whitelist.items():
+        if entry["discordId"] == str(ctx.author.id) and entry["status"] == "pending":
+            to_remove = gamertag
+            break
+
+    if not to_remove:
+        await ctx.send(MESSAGES["cancel_not_found"])
+        return
+
+    whitelist.pop(to_remove)
+    save_whitelist(whitelist)
+    await ctx.send(MESSAGES["cancel_success"].format(gamertag=to_remove))
+    
 # =====================
 # /approve <Gamertag>
 # =====================
@@ -225,7 +242,6 @@ async def approve(ctx, *, gamertag):
 
     allowlist.append({"name": gamertag, "xuid": xuid})
     whitelist[gamertag]["status"] = "approved"
-
     save_allowlist(allowlist)
     save_whitelist(whitelist)
     await ctx.send(MESSAGES["approve_success"].format(gamertag=gamertag))
@@ -244,10 +260,8 @@ async def revoke(ctx, *, gamertag):
 
     whitelist = load_whitelist()
     allowlist = load_allowlist()
-
     whitelist.pop(gamertag, None)
     allowlist = [e for e in allowlist if e["name"] != gamertag]
-
     save_whitelist(whitelist)
     save_allowlist(allowlist)
     await ctx.send(MESSAGES["revoke_success"].format(gamertag=gamertag))
