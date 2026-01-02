@@ -55,3 +55,48 @@ docker run -d \
   -e BEDROCK_NAMESPACE="minecraft" \
   -e BEDROCK_POD="bedrock-server" \
   maron/bedrock-discord-whitelist:latest
+```
+
+### Running from Source
+
+```bash
+git clone https://github.com/maron-gt123/bedrock-discord-whitelist.git
+cd bedrock-discord-whitelist
+pip install -r requirements.txt
+python bot.py
+```
+
+## 💬 Commands
+
+### 👤 General Users
+
+| Command | Description |
+|-----------|-------------|
+| `/apply <Gamertag>` | Apply for whitelist access |
+| `/wl_list pending` | Display the list of pending applications |
+
+### 🛠 Administrators
+
+| Command | Description |
+|-----------|-------------|
+| `/approve <Gamertag>` | Approve a whitelist application |
+| `/revoke <Gamertag>` | Remove a whitelist entry |
+| `/wl_list approved` | Display the list of approved users |
+| `/reload` | Reload the Bedrock allowlist |
+
+---
+
+## ⚠️ Notes
+
+- Gamertags must be **3–16 characters, alphanumeric and spaces only**  
+- Applications are limited to **once per minute**  
+- Users without admin permissions cannot use `/approve` or `/revoke`  
+- If Kubernetes exec fails, commands will not be sent to the Bedrock server  
+
+---
+
+## 📌 References
+
+- Sends commands to the Bedrock server via Kubernetes exec  
+- Handles Discord Bot permissions (channels and roles)  
+- Docker Hub image: [https://hub.docker.com/r/maron/bedrock-discord-whitelist](https://hub.docker.com/r/maron/bedrock-discord-whitelist)
