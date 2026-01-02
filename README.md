@@ -99,4 +99,4 @@ python bot.py
 
 - Sends commands to the Bedrock server via Kubernetes exec  
 - Handles Discord Bot permissions (channels and roles)  
-- Docker Hub image: [https://hub.docker.com/r/maron/bedrock-discord-whitelist](https://hub.docker.com/r/maron/bedrock-discord-whitelist)
+- Docker Hub image: [https://hub.docker.com/r/marongt123/bedrock-discord-whitelist(https://hub.docker.com/r/marongt123/bedrock-discord-whitelist)]
