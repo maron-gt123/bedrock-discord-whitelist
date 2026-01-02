@@ -126,25 +126,24 @@ def check_channel(ctx, command_type):
 # =====================
 # ヘルプ
 # =====================
-@bot.command(name="hl")
-async def hl(ctx, cmd: str = None):
+@bot.command(name="wl")
+async def wl(ctx, cmd: str = None):
     if cmd == "help":
         lines = [
-            "👤 一般ユーザー",
-            "/apply <Gamertag> ホワイトリスト申請",
-            "/wl_list pending 申請中の一覧を表示",
+            MESSAGES["user_section"],
+            MESSAGES["help_apply"],
+            MESSAGES["help_pending"],
         ]
         if is_admin(ctx.author):
             lines += [
                 "",
-                "🛠️ 管理者",
-                "/approve <Gamertag> 申請を承認",
-                "/revoke <Gamertag> ホワイトリスト削除",
-                "/wl_list approved 承認済み一覧を表示",
-                "/reload Bedrock allowlist を再読み込み",
+                MESSAGES["admin_section"],
+                MESSAGES["help_approve"],
+                MESSAGES["help_revoke"],
+                MESSAGES["help_list_approved"],
+                MESSAGES["help_reload"],
             ]
         await ctx.send("\n".join(lines))
-
 # =====================
 # 申請
 # =====================
