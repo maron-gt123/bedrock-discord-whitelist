@@ -8,6 +8,13 @@ import time
 import re
 
 # =====================
+# 言語ロード
+# =====================
+BOT_LANG = os.environ.get("BOT_LANG", "ja")  # ja or en
+with open(f"/app/lang_{BOT_LANG}.json", "r", encoding="utf-8") as f:
+    MESSAGES = json.load(f)
+
+# =====================
 # 変数
 # =====================
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -34,7 +41,7 @@ bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 apply_rate_limit = {}  # discord_id -> last_apply_time
 
 # =====================
-# JSON ユーティリティ（Stale handle 回避）
+# JSON ユーティリティ
 # =====================
 def safe_load_json(path, default):
     try:
@@ -48,7 +55,6 @@ def safe_load_json(path, default):
                 return data
     except (OSError, json.JSONDecodeError):
         pass
-    # ファイル新規作成
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(default, f, indent=2)
@@ -56,7 +62,6 @@ def safe_load_json(path, default):
 
 def save_json(path, data):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    # NFS の Stale handle 回避のため直接上書き
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
 
@@ -76,9 +81,6 @@ def save_allowlist(data):
 # Bedrock コマンド送信
 # =====================
 def bedrock_cmd(*args) -> bool:
-    """
-    kubectl exec 経由で Bedrock にコマンド送信
-    """
     try:
         if not BEDROCK_POD:
             raise RuntimeError("BEDROCK_POD is not set")
@@ -94,11 +96,7 @@ def bedrock_cmd(*args) -> bool:
 
         exec_cmd += ["--", "send-command", *args]
 
-        result = subprocess.run(
-            exec_cmd,
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(exec_cmd, capture_output=True, text=True)
 
         print("STDOUT:", result.stdout)
         print("STDERR:", result.stderr)
@@ -117,9 +115,6 @@ def is_valid_gamertag(name):
         return False
     return bool(re.match(r"^[A-Za-z0-9 ]+$", name))
 
-# =====================
-# チャンネル・権限ユーティリティ
-# =====================
 def is_admin(member):
     return any(role.id == ADMIN_ROLE for role in member.roles)
 
@@ -138,36 +133,26 @@ def check_channel(ctx, command_type):
 @bot.group()
 async def wl(ctx):
     if ctx.invoked_subcommand is None:
-        await ctx.send("使い方は `/wl help` を見てください")
+        await ctx.send(MESSAGES["help_header"])
         
 @wl.command(name="help")
 async def wl_help(ctx):
     lines = [
-        "📖 **コマンド一覧**",
+        MESSAGES["help_header"],
         "",
-        "👤 **一般ユーザー**",
-        "`/apply <Gamertag>`",
-        "ホワイトリスト申請を行います",
-        "",
-        "`/wl_list pending`",
-        "申請中の一覧を表示します",
+        MESSAGES["user_section"],
+        MESSAGES["help_apply"],
+        MESSAGES["help_pending"],
     ]
 
     if is_admin(ctx.author):
         lines += [
             "",
-            "🛠️ **管理者**",
-            "`/approve <Gamertag>`",
-            "申請を承認します",
-            "",
-            "`/revoke <Gamertag>`",
-            "ホワイトリスト削除します",
-            "",
-            "`/wl_list approved`",
-            "承認済み一覧を表示します",
-            "",
-            "`/reload`",
-            "Bedrock allowlist を再読み込みします",
+            MESSAGES["admin_section"],
+            MESSAGES["help_approve"],
+            MESSAGES["help_revoke"],
+            MESSAGES["help_list_approved"],
+            MESSAGES["help_reload"],
         ]
 
     await ctx.send("\n".join(lines))
@@ -178,57 +163,51 @@ async def wl_help(ctx):
 @bot.command()
 async def apply(ctx, *, gamertag):
     if not check_channel(ctx, "apply"):
-        await ctx.send("❌ 申請用チャンネルで実行してください")
+        await ctx.send(MESSAGES["apply_channel_error"])
         return
 
     whitelist = load_whitelist()
-
     now = time.time()
     last = apply_rate_limit.get(ctx.author.id, 0)
     if now - last < 60:
-        await ctx.send("⏳ 申請は60秒に1回までです")
+        await ctx.send(MESSAGES["rate_limit"])
         return
     apply_rate_limit[ctx.author.id] = now
 
     if not is_valid_gamertag(gamertag):
-        await ctx.send("❌ Gamertag形式が不正です")
+        await ctx.send(MESSAGES["invalid_gamertag"])
         return
 
     if gamertag in whitelist:
-        await ctx.send("❌ このGamertagはすでに申請されています")
+        await ctx.send(MESSAGES["already_applied"])
         return
 
     for entry in whitelist.values():
         if entry["discordId"] == str(ctx.author.id) and entry["status"] == "pending":
-            await ctx.send("❌ すでに申請中です")
+            await ctx.send(MESSAGES["already_pending"])
             return
 
-    whitelist[gamertag] = {
-        "discordId": str(ctx.author.id),
-        "status": "pending",
-    }
-
+    whitelist[gamertag] = {"discordId": str(ctx.author.id), "status": "pending"}
     save_whitelist(whitelist)
-    await ctx.send(f"✅ 申請受付: **{gamertag}**")
+    await ctx.send(MESSAGES["apply_success"].format(gamertag=gamertag))
 
-    
 # =====================
 # 承認
 # =====================
 @bot.command()
 async def approve(ctx, *, gamertag):
     if not check_channel(ctx, "approve"):
-        await ctx.send("❌ 承認用チャンネルで実行してください")
+        await ctx.send(MESSAGES["approve_channel_error"])
         return
     if not is_admin(ctx.author):
-        await ctx.send("❌ 権限がありません")
+        await ctx.send(MESSAGES["no_permission"])
         return
 
     whitelist = load_whitelist()
     allowlist = load_allowlist()
 
     if gamertag not in whitelist:
-        await ctx.send("❌ 申請が見つかりません")
+        await ctx.send(MESSAGES["not_found"])
         return
 
     async with aiohttp.ClientSession() as session:
@@ -237,11 +216,11 @@ async def approve(ctx, *, gamertag):
                 data = await resp.json()
                 xuid = data["data"]["player"]["id"]
             except Exception:
-                await ctx.send("❌ XUID取得失敗")
+                await ctx.send(MESSAGES["xuid_fail"])
                 return
 
     if any(e["xuid"] == xuid for e in allowlist):
-        await ctx.send("⚠️ すでに登録済みです")
+        await ctx.send(MESSAGES["already_registered"])
         return
 
     allowlist.append({"name": gamertag, "xuid": xuid})
@@ -249,8 +228,7 @@ async def approve(ctx, *, gamertag):
 
     save_allowlist(allowlist)
     save_whitelist(whitelist)
-
-    await ctx.send(f"✅ 承認完了: **{gamertag}**")
+    await ctx.send(MESSAGES["approve_success"].format(gamertag=gamertag))
 
 # =====================
 # 削除
@@ -258,10 +236,10 @@ async def approve(ctx, *, gamertag):
 @bot.command()
 async def revoke(ctx, *, gamertag):
     if not check_channel(ctx, "revoke"):
-        await ctx.send("❌ 承認用チャンネルで実行してください")
+        await ctx.send(MESSAGES["approve_channel_error"])
         return
     if not is_admin(ctx.author):
-        await ctx.send("❌ 権限がありません")
+        await ctx.send(MESSAGES["no_permission"])
         return
 
     whitelist = load_whitelist()
@@ -272,8 +250,7 @@ async def revoke(ctx, *, gamertag):
 
     save_whitelist(whitelist)
     save_allowlist(allowlist)
-
-    await ctx.send(f"🗑️ 削除完了: **{gamertag}**")
+    await ctx.send(MESSAGES["revoke_success"].format(gamertag=gamertag))
 
 # =====================
 # 一覧
@@ -281,29 +258,27 @@ async def revoke(ctx, *, gamertag):
 @bot.command(name="wl_list")
 async def wl_list(ctx, status: str):
     whitelist = load_whitelist()
-
     if status not in ("pending", "approved"):
-        await ctx.send("❌ `/wl_list pending | approved`")
+        await ctx.send(f"❌ `/wl_list pending | approved`")
         return
 
     if status == "pending" and not check_channel(ctx, "wl_list_pending"):
-        await ctx.send("❌ このチャンネルでは実行できません")
+        await ctx.send(MESSAGES["apply_channel_error"])
         return
 
     if status == "approved" and not check_channel(ctx, "wl_list_approved"):
         if not is_admin(ctx.author):
-            await ctx.send("❌ 権限がありません")
+            await ctx.send(MESSAGES["no_permission"])
             return
-        await ctx.send("❌ このチャンネルでは実行できません")
+        await ctx.send(MESSAGES["approve_channel_error"])
         return
 
     items = [name for name, data in whitelist.items() if data.get("status") == status]
-
     if not items:
-        await ctx.send(f"📭 {status} はありません")
+        await ctx.send(MESSAGES["list_empty"].format(status=status))
         return
 
-    msg = f"📋 **{status.upper()} 一覧**\n" + "\n".join(f"- {i}" for i in items)
+    msg = f"📋 **{status.upper()} List**\n" + "\n".join(f"- {i}" for i in items)
     await ctx.send(msg)
 
 # =====================
@@ -312,19 +287,17 @@ async def wl_list(ctx, status: str):
 @bot.command()
 async def reload(ctx):
     if not check_channel(ctx, "approve"):
-        await ctx.send("❌ 管理用チャンネルで実行してください")
+        await ctx.send(MESSAGES["approve_channel_error"])
         return
-
     if not is_admin(ctx.author):
-        await ctx.send("❌ 権限がありません")
+        await ctx.send(MESSAGES["no_permission"])
         return
 
     ok = bedrock_cmd("allowlist reload")
-
     if ok:
-        await ctx.send("🔄 allowlist reload を実行しました")
+        await ctx.send(MESSAGES["reload_success"])
     else:
-        await ctx.send("❌ Bedrock へのコマンド送信に失敗しました")
+        await ctx.send(MESSAGES["reload_fail"])
 
 # =====================
 # 起動
