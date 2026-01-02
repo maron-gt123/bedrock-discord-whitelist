@@ -19,6 +19,28 @@ Users can apply for whitelist access on Discord, and administrators can approve 
 
 ---
 
+## 🌐 Supported Languages
+
+This bot currently supports the following languages. Set the language using the `BOT_LANG` environment variable.
+
+| Language | Code | JSON File |
+|----------|------|-----------|
+| Japanese | `ja` | `ja.json` |
+| English  | `en` | `en.json` |
+| Korean   | `ko` | `ko.json` |
+| Spanish  | `es` | `es.json` |
+| Chinese (Simplified) | `zh-CN` | `zh-CN.json` |
+
+> Default: `ja` (Japanese)  
+> To change the language, set `BOT_LANG` to one of the codes above before starting the bot.
+
+```bash
+# Example: Set language to English
+docker run -d \
+  -e BOT_LANG="en" \
+  -e BOT_TOKEN="your_token" \
+```
+
 ## 🖥 Requirements
 
 - Python 3.10 or higher (not required if using the Docker image)  
