@@ -121,19 +121,20 @@ def check_channel(ctx, command_type):
 # =====================
 @bot.command(name="wl")
 async def wl(ctx, subcommand: str = None):
-    # サブコマンドが help 以外 → 案内
+    """
+    /wl help → ヘルプ表示
+    それ以外 → 案内メッセージ
+    """
     if subcommand != "help":
-        await ctx.send("使い方は /wl help を見てください")
+        await ctx.send(f"使い方は /wl help を見てください")
         return
 
-    # ユーザー向けヘルプ
     lines = [
         MESSAGES["user_section"],
         MESSAGES["help_apply"],
         MESSAGES["help_pending"],
     ]
 
-    # 管理者向けヘルプ
     if is_admin(ctx.author):
         lines += [
             "",
@@ -144,6 +145,7 @@ async def wl(ctx, subcommand: str = None):
             MESSAGES["help_reload"],
         ]
 
+    # ここでMESSAGESだけから構成する → 日本語ハードコードは残さない
     await ctx.send("\n".join(lines))
 
 # =====================
