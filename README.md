@@ -3,6 +3,9 @@
 この Bot は **Minecraft Bedrock Edition** サーバーのホワイトリスト管理を **Discord を通じて簡単に行うため**のものです。  
 ユーザーは Discord 上で申請を行い、管理者が承認することでサーバーに参加可能になります。
 
+> ⚠️ 本 Bot は **Kubernetes 上で Bedrock サーバーを運用している環境を前提** に作られています。  
+> Bedrock サーバーへのコマンド送信は `kubectl exec` を直接使用します。
+
 ---
 
 ## 🌟 特徴
