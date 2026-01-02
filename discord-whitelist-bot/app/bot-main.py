@@ -11,7 +11,7 @@ import re
 # 言語ロード
 # =====================
 BOT_LANG = os.environ.get("BOT_LANG", "ja")  # ja or en
-with open(f"/app/lang_{BOT_LANG}.json", "r", encoding="utf-8") as f:
+with open(f"./lang/{BOT_LANG}.json", "r", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 
 # =====================
