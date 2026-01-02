@@ -121,10 +121,7 @@ def check_channel(ctx, command_type):
 # =====================
 @bot.command(name="wl")
 async def wl(ctx, subcommand: str = None):
-    """
-    /wl help → ヘルプ表示
-    それ以外 → 「使い方は /wl help を見てください」を返す
-    """
+    # サブコマンドが help 以外 → 案内
     if subcommand != "help":
         await ctx.send("使い方は /wl help を見てください")
         return
@@ -148,7 +145,7 @@ async def wl(ctx, subcommand: str = None):
         ]
 
     await ctx.send("\n".join(lines))
-    
+
 # =====================
 # /apply <Gamertag>
 # =====================
