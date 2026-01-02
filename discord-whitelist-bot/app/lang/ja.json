@@ -24,7 +24,7 @@
   "revoke_success": "🗑️ 削除完了: **{gamertag}**",
   "list_empty": "📭 {status} はありません",
   "reload_success": "🔄 allowlist reload を実行しました",
-  "reload_fail": "❌ Bedrock へのコマンド送信に失敗しました"
+  "reload_fail": "❌ Bedrock へのコマンド送信に失敗しました",
   "cancel_not_found": "❌ 申請中のGamertagが見つかりません",
   "cancel_success": "🗑️ 申請を取り消しました: **{gamertag}**"
 }
