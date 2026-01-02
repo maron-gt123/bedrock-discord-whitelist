@@ -127,7 +127,7 @@ def check_channel(ctx, command_type):
 # ヘルプ
 # =====================
 @bot.command(name="wl")
-async def wl(ctx, cmd: str = None):
+async def wl_help(ctx, cmd: str = None):
     if cmd == "help":
         lines = [
             MESSAGES["user_section"],
