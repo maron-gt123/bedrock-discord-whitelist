@@ -117,34 +117,38 @@ def check_channel(ctx, command_type):
     return False
 
 # =====================
-# /wl help のみ専用処理
+# /wl コマンド（ヘルプ専用）
 # =====================
-@bot.event
-async def on_message(message):
-    if message.author.bot:
+@bot.command(name="wl")
+async def wl(ctx, subcommand: str = None):
+    """
+    /wl help → ヘルプ表示
+    それ以外 → 「使い方は /wl help を見てください」を返す
+    """
+    if subcommand != "help":
+        await ctx.send("使い方は /wl help を見てください")
         return
 
-    if message.content.strip() == "/wl help":
-        lines = [
-            MESSAGES["user_section"],
-            MESSAGES["help_apply"],
-            MESSAGES["help_pending"],
+    # ユーザー向けヘルプ
+    lines = [
+        MESSAGES["user_section"],
+        MESSAGES["help_apply"],
+        MESSAGES["help_pending"],
+    ]
+
+    # 管理者向けヘルプ
+    if is_admin(ctx.author):
+        lines += [
+            "",
+            MESSAGES["admin_section"],
+            MESSAGES["help_approve"],
+            MESSAGES["help_revoke"],
+            MESSAGES["help_list_approved"],
+            MESSAGES["help_reload"],
         ]
-        if is_admin(message.author):
-            lines += [
-                "",
-                MESSAGES["admin_section"],
-                MESSAGES["help_approve"],
-                MESSAGES["help_revoke"],
-                MESSAGES["help_list_approved"],
-                MESSAGES["help_reload"],
-            ]
-        await message.channel.send("\n".join(lines))
-        return
 
-    # 既存の @bot.command() 処理を通す
-    await bot.process_commands(message)
-
+    await ctx.send("\n".join(lines))
+    
 # =====================
 # /apply <Gamertag>
 # =====================
