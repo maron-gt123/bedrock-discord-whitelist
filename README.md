@@ -12,15 +12,16 @@
 
 - Discord でホワイトリストの申請・承認・削除・一覧確認が可能  
 - 申請は **60 秒に 1 回の制限付き**  
-- Minecraft Bedrock サーバーへのコマンド送信は **Kubernetes exec 経由**  
+- Minecraft Bedrock サーバーへのコマンド送信は **Kubernetes exec 直経由**  
 - **PlayerDB API** を使用して Gamertag から XUID を自動取得  
 - 管理者は `/approve` `/revoke` `/reload` コマンドで簡単操作  
+- Docker イメージとしても提供されており、簡単にデプロイ可能 
 
 ---
 
 ## 🖥 動作環境
 
-- Python 3.10 以上  
+- Python 3.10 以上（Docker イメージ利用時は不要）  
 - Discord Bot Token  
 - Kubernetes 上の Bedrock サーバー  
 
@@ -38,25 +39,33 @@
 
 ---
 
-## ⚙️ インストール
+## ⚙️ インストール / デプロイ
 
+### Docker Hub を利用する場合
+
+Docker Hub に公開されているイメージを利用すれば、環境構築や pip インストールは不要です。  
+環境変数を設定してコンテナを起動するだけで動作します。
+
+```bash
+docker run -d \
+  -e BOT_TOKEN="your_token" \
+  -e APPLY_CHANNEL=1234567890 \
+  -e APPROVE_CHANNEL=1234567890 \
+  -e ADMIN_ROLE=1234567890 \
+  -e BEDROCK_NAMESPACE="minecraft" \
+  -e BEDROCK_POD="bedrock-server" \
+  maron/bedrock-discord-whitelist:latest
 ```
+
+### ローカルでソースを使う場合
+
+```bash
 git clone https://github.com/maron-gt123/bedrock-discord-whitelist.git
 cd bedrock-discord-whitelist
 pip install -r requirements.txt
-
-```
-環境変数を設定して Bot を起動します。
-
-```
-export BOT_TOKEN="your_token"
-export APPLY_CHANNEL=1234567890
-export APPROVE_CHANNEL=1234567890
-export ADMIN_ROLE=1234567890
-export BEDROCK_NAMESPACE="minecraft"
-export BEDROCK_POD="bedrock-server"
 python bot.py
 ```
+
 ## 💬 コマンド一覧
 
 ### 👤 一般ユーザー
@@ -88,6 +97,6 @@ python bot.py
 
 ## 📌 参考
 
-- 公式 PlayerDB API: [https://playerdb.co](https://playerdb.co)  
 - Kubernetes exec を使って Bedrock コマンド送信  
 - Discord Bot の権限管理（チャンネル・ロール）に対応
+- Docker Hub イメージ: https://hub.docker.com/r/maron/bedrock-discord-whitelist
