@@ -3,6 +3,7 @@
   "user_section": "👤 **General Users**",
   "help_apply": "`/apply <Gamertag>` Apply to whitelist",
   "help_pending": "`/wl_list pending` Show pending applications",
+  "help_cancel": "`/cancel` Cancel your pending Gamertag application",
   "admin_section": "🛠 **Administrators**",
   "help_approve": "`/approve <Gamertag>` Approve application",
   "help_revoke": "`/revoke <Gamertag>` Remove from whitelist",
@@ -25,4 +26,6 @@
   "list_empty": "📭 No {status}",
   "reload_success": "🔄 Allowlist reload executed",
   "reload_fail": "❌ Failed to send command to Bedrock"
+  "cancel_not_found": "❌ No pending Gamertag application found",
+  "cancel_success": "🗑️ Canceled application: **{gamertag}**"
 }
