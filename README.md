@@ -1,60 +1,43 @@
-# bedrock-discord-whitelist
+# 📝 Bedrock Discord Whitelist Bot
 
-Minecraft 統合版（Bedrock Dedicated Server）向けの  
-**Discord ベース・ホワイトリスト管理 Bot** です。
-
-Discord 上で申請 → 管理者承認 → `allowlist.json` 反映  
-という流れを **安全に・シンプルに** 運用できます。
+この Bot は **Minecraft Bedrock Edition** サーバーのホワイトリスト管理を **Discord を通じて簡単に行うため**のものです。  
+ユーザーは Discord 上で申請を行い、管理者が承認することでサーバーに参加可能になります。
 
 ---
 
-## 特徴
+## 🌟 特徴
 
-- 🧾 Discord からbot経由でホワイトリスト申請
-- ✅ 管理者による承認 / 削除
-- 🔐 承認行為を実装しているため、不特定多数のログイン防止
-- 🧠 JSON ベース（DB 不要）
----
-
-## 想定ユースケース
-
-- 自宅及びVPS運用の Bedrock Dedicated Server
-- Discord を入口にした参加管理
-- ある一定のログイン対象者を選択するサーバーを運用したい場合に最適
----
-
-## 全体フロー
-
-```
-[参加者]
-  ↓ Discord
-/apply Gamertag
-  ↓
-[Bot]
-  - 形式チェック
-  - レート制限
-  - pending 登録
-  ↓
-[管理者]
-/approve Gamertag
-  ↓
-[Bot]
-  - XUID取得
-  - allowlist.json 更新
-```
+- Discord でホワイトリストの申請・承認・削除・一覧確認が可能  
+- 申請は **60 秒に 1 回の制限付き**  
+- Minecraft Bedrock サーバーへのコマンド送信は **Kubernetes exec 経由**  
+- **PlayerDB API** を使用して Gamertag から XUID を自動取得  
+- 管理者は `/approve` `/revoke` `/reload` コマンドで簡単操作  
 
 ---
 
-## 環境変数
-環境変数は以下で設定してください
-```
-# Discord BOT トークン
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+## 🖥 動作環境
 
-# Discord サーバー関連
-APPLY_CHANNEL = 123456789012345678
-APPROVE_CHANNEL = 234567890123456789
-ADMIN_ROLE = 345678901234567890
-BEDROCK_NAMESPACE = namespace
-BEDROCK_POD = pod_name
-```
+- Python 3.10 以上  
+- Discord Bot Token  
+- Kubernetes 上の Bedrock サーバー  
+
+必要な環境変数:
+
+| 環境変数 | 説明 |
+|-----------|------|
+| `BOT_TOKEN` | Discord Bot Token |
+| `APPLY_CHANNEL` | 申請用チャンネルID |
+| `APPROVE_CHANNEL` | 承認用チャンネルID |
+| `ADMIN_ROLE` | 管理者ロールID |
+| `BEDROCK_NAMESPACE` | Bedrock Pod が存在する Kubernetes Namespace |
+| `BEDROCK_POD` | Bedrock Pod 名 |
+| `BEDROCK_CONTAINER` | （必要な場合）コンテナ名 |
+
+---
+
+## ⚙️ インストール
+
+```bash
+git clone https://github.com/maron-gt123/bedrock-discord-whitelist.git
+cd bedrock-discord-whitelist
+pip install -r requirements.txt
