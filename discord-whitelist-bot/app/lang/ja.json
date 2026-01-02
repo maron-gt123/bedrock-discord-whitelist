@@ -2,6 +2,7 @@
   "user_section": "👤 **一般ユーザー**",
   "help_apply": "`/apply <Gamertag>` ホワイトリスト申請",
   "help_pending": "`/wl_list pending` 申請中の一覧を表示",
+  "help_cancel": "`/cancel` 申請中のGamertagを取り消す",
   "admin_section": "🛠️ **管理者**",
   "help_approve": "`/approve <Gamertag>` 申請を承認",
   "help_revoke": "`/revoke <Gamertag>` ホワイトリスト削除",
@@ -24,4 +25,6 @@
   "list_empty": "📭 {status} はありません",
   "reload_success": "🔄 allowlist reload を実行しました",
   "reload_fail": "❌ Bedrock へのコマンド送信に失敗しました"
+  "cancel_not_found": "❌ 申請中のGamertagが見つかりません",
+  "cancel_success": "🗑️ 申請を取り消しました: **{gamertag}**"
 }
