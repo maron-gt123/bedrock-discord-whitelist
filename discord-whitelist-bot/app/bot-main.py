@@ -15,7 +15,7 @@ with open(f"./lang/{BOT_LANG}.json", "r", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 
 # =====================
-# 変数
+# 環境変数・設定
 # =====================
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 APPLY_CHANNEL = int(os.environ.get("APPLY_CHANNEL", 0))
@@ -117,17 +117,20 @@ def check_channel(ctx, command_type):
     return False
 
 # =====================
-# ヘルプ
+# /wl help のみ専用処理
 # =====================
-@bot.command(name="wl")
-async def wl_help(ctx, cmd: str = None):
-    if cmd == "help":
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if message.content.strip() == "/wl help":
         lines = [
             MESSAGES["user_section"],
             MESSAGES["help_apply"],
             MESSAGES["help_pending"],
         ]
-        if is_admin(ctx.author):
+        if is_admin(message.author):
             lines += [
                 "",
                 MESSAGES["admin_section"],
@@ -136,10 +139,14 @@ async def wl_help(ctx, cmd: str = None):
                 MESSAGES["help_list_approved"],
                 MESSAGES["help_reload"],
             ]
-        await ctx.send("\n".join(lines))
+        await message.channel.send("\n".join(lines))
+        return
+
+    # 既存の @bot.command() 処理を通す
+    await bot.process_commands(message)
 
 # =====================
-# 申請
+# /apply <Gamertag>
 # =====================
 @bot.command()
 async def apply(ctx, *, gamertag):
@@ -173,7 +180,7 @@ async def apply(ctx, *, gamertag):
     await ctx.send(MESSAGES["apply_success"].format(gamertag=gamertag))
 
 # =====================
-# 承認
+# /approve <Gamertag>
 # =====================
 @bot.command()
 async def approve(ctx, *, gamertag):
@@ -212,7 +219,7 @@ async def approve(ctx, *, gamertag):
     await ctx.send(MESSAGES["approve_success"].format(gamertag=gamertag))
 
 # =====================
-# 削除
+# /revoke <Gamertag>
 # =====================
 @bot.command()
 async def revoke(ctx, *, gamertag):
@@ -234,7 +241,7 @@ async def revoke(ctx, *, gamertag):
     await ctx.send(MESSAGES["revoke_success"].format(gamertag=gamertag))
 
 # =====================
-# 一覧
+# /wl_list pending | approved
 # =====================
 @bot.command(name="wl_list")
 async def wl_list(ctx, status: str):
@@ -263,7 +270,7 @@ async def wl_list(ctx, status: str):
     await ctx.send(msg)
 
 # =====================
-# allowlist reload
+# /reload
 # =====================
 @bot.command()
 async def reload(ctx):
