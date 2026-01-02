@@ -132,6 +132,7 @@ async def wl_help(ctx):
         MESSAGES["user_section"],
         MESSAGES["help_apply"],
         MESSAGES["help_pending"],
+        MESSAGES["help_cancel"],
     ]
     if is_admin(ctx.author):
         lines += [
@@ -143,7 +144,6 @@ async def wl_help(ctx):
             MESSAGES["help_reload"],
         ]
     await ctx.send("\n".join(lines))
-
 # =====================
 # /apply <Gamertag>
 # =====================
