@@ -9,7 +9,7 @@
   "help_reload": "`/reload` Bedrock allowlist を再読み込み",
   "apply_channel_error": "❌ 申請用チャンネルで実行してください",
   "rate_limit": "⏳ 申請は60秒に1回までです",
-  "gamertag_not_found": "❌ Gamertag **{gamertag}** が見つかりません"
+  "gamertag_not_found": "❌ Gamertag **{gamertag}** が見つかりません",
   "invalid_gamertag": "❌ Gamertag形式が不正です",
   "already_applied": "❌ このGamertagはすでに申請されています",
   "already_pending": "❌ すでに申請中です",
