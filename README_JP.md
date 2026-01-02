@@ -99,4 +99,4 @@ python bot.py
 
 - Kubernetes exec を使って Bedrock コマンド送信  
 - Discord Bot の権限管理（チャンネル・ロール）に対応
-- Docker Hub イメージ:  [https://hub.docker.com/r/maron/bedrock-discord-whitelist](https://hub.docker.com/r/maron/bedrock-discord-whitelist)
+- Docker Hub イメージ: [Docker Hub](https://hub.docker.com/r/marongt123/bedrock-discord-whitelist)
