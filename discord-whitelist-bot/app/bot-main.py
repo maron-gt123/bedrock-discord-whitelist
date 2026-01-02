@@ -10,7 +10,7 @@ import re
 # =====================
 # 言語ロード
 # =====================
-BOT_LANG = os.environ.get("BOT_LANG", "ja")  # ja or en
+BOT_LANG = os.environ.get("BOT_LANG", "ja")
 with open(f"./lang/{BOT_LANG}.json", "r", encoding="utf-8") as f:
     MESSAGES = json.load(f)
 
@@ -38,7 +38,7 @@ bot = commands.Bot(command_prefix="/", intents=intents, help_command=None)
 # =====================
 # 内部状態
 # =====================
-apply_rate_limit = {}  # discord_id -> last_apply_time
+apply_rate_limit = {}
 
 # =====================
 # JSON ユーティリティ
@@ -111,61 +111,39 @@ def bedrock_cmd(*args) -> bool:
 # ユーティリティ
 # =====================
 def is_valid_gamertag(name):
-    if not (3 <= len(name) <= 16):
-        return False
-    return bool(re.match(r"^[A-Za-z0-9 ]+$", name))
+    return bool(re.match(r"^[A-Za-z0-9 ]{3,16}$", name))
 
 def is_admin(member):
     return any(role.id == ADMIN_ROLE for role in member.roles)
 
 def check_channel(ctx, command_type):
-    if command_type == "apply":
+    if command_type in ("apply", "wl_list_pending"):
         return ctx.channel.id == APPLY_CHANNEL
-    if command_type in ("approve", "revoke", "wl_list_approved"):
+    if command_type in ("approve", "revoke", "wl_list_approved", "reload"):
         return ctx.channel.id == APPROVE_CHANNEL
-    if command_type == "wl_list_pending":
-        return ctx.channel.id in (APPLY_CHANNEL, APPROVE_CHANNEL)
     return False
 
 # =====================
-# help コマンド
+# ヘルプ
 # =====================
-@bot.group(invoke_without_command=True)
-async def wl(ctx):
-    """/wl 単体で簡易ヘルプを表示"""
-    if ctx.invoked_subcommand is None:
-        # 簡易ヘルプだけ送る
+@bot.command(name="hl")
+async def hl(ctx, cmd: str = None):
+    if cmd == "help":
         lines = [
-            MESSAGES["help_header"],
-            "",
-            MESSAGES["user_section"],
-            MESSAGES["help_apply"],
-            MESSAGES["help_pending"],
+            "👤 一般ユーザー",
+            "/apply <Gamertag> ホワイトリスト申請",
+            "/wl_list pending 申請中の一覧を表示",
         ]
+        if is_admin(ctx.author):
+            lines += [
+                "",
+                "🛠️ 管理者",
+                "/approve <Gamertag> 申請を承認",
+                "/revoke <Gamertag> ホワイトリスト削除",
+                "/wl_list approved 承認済み一覧を表示",
+                "/reload Bedrock allowlist を再読み込み",
+            ]
         await ctx.send("\n".join(lines))
-
-@wl.command(name="help")
-async def wl_help(ctx):
-    """/wl help で詳細ヘルプを表示"""
-    lines = [
-        MESSAGES["help_header"],
-        "",
-        MESSAGES["user_section"],
-        MESSAGES["help_apply"],
-        MESSAGES["help_pending"],
-    ]
-
-    if is_admin(ctx.author):
-        lines += [
-            "",
-            MESSAGES["admin_section"],
-            MESSAGES["help_approve"],
-            MESSAGES["help_revoke"],
-            MESSAGES["help_list_approved"],
-            MESSAGES["help_reload"],
-        ]
-
-    await ctx.send("\n".join(lines))
 
 # =====================
 # 申請
@@ -296,7 +274,7 @@ async def wl_list(ctx, status: str):
 # =====================
 @bot.command()
 async def reload(ctx):
-    if not check_channel(ctx, "approve"):
+    if not check_channel(ctx, "reload"):
         await ctx.send(MESSAGES["approve_channel_error"])
         return
     if not is_admin(ctx.author):
