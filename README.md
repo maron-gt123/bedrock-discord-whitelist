@@ -37,7 +37,54 @@
 
 ## ⚙️ インストール
 
-```bash
+```
 git clone https://github.com/maron-gt123/bedrock-discord-whitelist.git
 cd bedrock-discord-whitelist
 pip install -r requirements.txt
+
+```
+環境変数を設定して Bot を起動します。
+
+```
+export BOT_TOKEN="your_token"
+export APPLY_CHANNEL=1234567890
+export APPROVE_CHANNEL=1234567890
+export ADMIN_ROLE=1234567890
+export BEDROCK_NAMESPACE="minecraft"
+export BEDROCK_POD="bedrock-server"
+python bot.py
+```
+## 💬 コマンド一覧
+
+### 👤 一般ユーザー
+
+| コマンド | 説明 |
+|-----------|------|
+| `/apply <Gamertag>` | ホワイトリスト申請 |
+| `/wl_list pending` | 申請中の一覧を表示 |
+
+### 🛠 管理者
+
+| コマンド | 説明 |
+|-----------|------|
+| `/approve <Gamertag>` | 申請を承認 |
+| `/revoke <Gamertag>` | ホワイトリスト削除 |
+| `/wl_list approved` | 承認済み一覧を表示 |
+| `/reload` | Bedrock allowlist を再読み込み |
+
+---
+
+## ⚠️ 注意点
+
+- Gamertag は **3〜16 文字、英数字とスペースのみ**  
+- 申請は **1 分に 1 回まで**  
+- 管理者権限のないユーザーは `/approve` や `/revoke` を使用できません  
+- Kubernetes exec が失敗すると Bedrock へのコマンド送信はできません  
+
+---
+
+## 📌 参考
+
+- 公式 PlayerDB API: [https://playerdb.co](https://playerdb.co)  
+- Kubernetes exec を使って Bedrock コマンド送信  
+- Discord Bot の権限管理（チャンネル・ロール）に対応
